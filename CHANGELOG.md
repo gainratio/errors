@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-01
+
+### Changed
+
+- **Renamed to `@gainratio/errors`; old name deprecated.** New releases ship
+  only as `@gainratio/errors`. `@edgeproc/errors` 0.2.0 and older keep
+  installing. Change `npm install @edgeproc/errors` to
+  `npm install @gainratio/errors` and update imports. No code change.
+
 ## [0.2.0] - 2026-09-26
 
 A minor release: one new export (`InvalidCatalogEntryError`) and a stricter

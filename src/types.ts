@@ -1,5 +1,5 @@
 /**
- * The public type surface for @edgeproc/errors.
+ * The public type surface for @gainratio/errors.
  *
  * A canonical error is `{ code, params, category }` and serializes to the
  * RFC 9457 Problem Details shape on the wire. The catalog entry for a code is

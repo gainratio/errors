@@ -16,8 +16,8 @@ const PKG = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as {
   description: string;
 };
 
-const TITLE = "# @edgeproc/errors";
-const INSTALL_LINE = "**`npm install @edgeproc/errors`**";
+const TITLE = "# @gainratio/errors";
+const INSTALL_LINE = "**`npm install @gainratio/errors`**";
 const TECH_DOCS = "**Technical docs:**";
 const ARCHITECTURE = "docs/ARCHITECTURE.md";
 const GETTING_STARTED = "docs/GETTING_STARTED.md";
@@ -190,7 +190,7 @@ describe("README 'Try it' shows real code and its real output", () => {
     vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
       printed.push(args.join(" "));
     });
-    // vitest.config.ts aliases "@edgeproc/errors" to src/, so this runs the
+    // vitest.config.ts aliases "@gainratio/errors" to src/, so this runs the
     // example file against the code in this commit.
     const example = pathToFileURL(join(ROOT, "examples/try.mjs")).href;
     await import(/* @vite-ignore */ example);

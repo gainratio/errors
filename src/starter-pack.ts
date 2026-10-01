@@ -40,7 +40,7 @@ const isUnreachableFailure = (raw: unknown): boolean =>
  * would change three shipped UIs on the next re-vendor. It is also, honestly,
  * an AI/WASM catalog wearing a generic name — 14 of the 18 codes are `ai.*` or
  * `bundle.*`, three hardcode another app's "Settings → AI", and
- * `ai.privacy.violation` string-couples to `@edgeproc/privacy-core`. New work
+ * `ai.privacy.violation` string-couples to `@gainratio/privacy-core`. New work
  * should reach for {@link corePack} / {@link aiPack} / {@link bundlePack}
  * instead and take only the halves it needs.
  */
@@ -228,7 +228,7 @@ export const corePack = {
  * another app's "Settings → AI" screen, `ai.provider.server_error` claims the
  * whole 5xx range, and `ai.privacy.violation` ships NO `match` rule — the old
  * one string-matched `"PrivacyViolationError"`, coupling this catalog to
- * `@edgeproc/privacy-core`. Attach your own predicate for whatever your egress
+ * `@gainratio/privacy-core`. Attach your own predicate for whatever your egress
  * guard throws.
  */
 export const aiPack = {

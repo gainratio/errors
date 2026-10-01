@@ -25,7 +25,7 @@ ships, the latest minor of the current major will be supported as well.
 
 ## Threat model
 
-`@edgeproc/errors` is a pure library with zero runtime dependencies. It does no
+`@gainratio/errors` is a pure library with zero runtime dependencies. It does no
 I/O: no network, no filesystem, no process or environment access. It takes
 values you hand it, matches them against a catalog you register, and returns
 strings and plain objects.

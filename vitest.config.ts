@@ -6,7 +6,7 @@ export default defineConfig({
   // so test/readme.contract.test.ts runs the example against this commit.
   resolve: {
     alias: {
-      "@edgeproc/errors": fileURLToPath(
+      "@gainratio/errors": fileURLToPath(
         new URL("src/index.ts", import.meta.url),
       ),
     },

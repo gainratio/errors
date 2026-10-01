@@ -1,5 +1,5 @@
 /**
- * @edgeproc/errors — canonical error glue.
+ * @gainratio/errors — canonical error glue.
  *
  * Register a per-app catalog of codes, classify raw failures into those codes,
  * describe them via your own i18next, and serialize to RFC 9457 Problem Details.

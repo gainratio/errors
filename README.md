@@ -1,11 +1,11 @@
-# @edgeproc/errors
+# @gainratio/errors
 
 Give every error in your JavaScript or TypeScript app one fixed code and one clear message, the same on every screen.
 
-**`npm install @edgeproc/errors`** (Node 22.13 or newer, no dependencies).
+**`npm install @gainratio/errors`** (Node 22.13 or newer, no dependencies).
 
 [![CI](https://github.com/hseshadr/errors/actions/workflows/ci.yml/badge.svg)](https://github.com/hseshadr/errors/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@edgeproc/errors)](https://www.npmjs.com/package/@edgeproc/errors)
+[![npm](https://img.shields.io/npm/v/@gainratio/errors)](https://www.npmjs.com/package/@gainratio/errors)
 [![License: MIT](https://img.shields.io/github/license/hseshadr/errors)](LICENSE)
 
 In most apps, every `catch` block writes its own error message, so one problem
@@ -27,13 +27,13 @@ It does not log, retry, or report errors. Your app still decides what to do with
 1. Make an empty project and install the package:
 
    ```bash
-   mkdir try-errors && cd try-errors && npm init -y >/dev/null && npm install @edgeproc/errors
+   mkdir try-errors && cd try-errors && npm init -y >/dev/null && npm install @gainratio/errors
    ```
 
 2. Save this as `try.mjs` (it is also [`examples/try.mjs`](examples/try.mjs)):
 
 ```js
-import { aiPack, corePack, defineErrorsWith } from "@edgeproc/errors";
+import { aiPack, corePack, defineErrorsWith } from "@gainratio/errors";
 
 // Your app's list of error codes: 10 everyday ones + 9 for calling an AI service.
 // Both lists claim some statuses (401, 404, 429, 5xx, timeouts). The list you
@@ -149,12 +149,12 @@ throws and tells you to add `corePack` or pick one of your codes as the
 | One or two error screens in a small app | A few hand-written messages. This would be overkill. |
 | Only HTTP status to text, in one language | A small `switch (status)` helper |
 | Collecting errors, alerts, and dashboards | An error tracker such as Sentry. It pairs well with this: log the code this package gives you. |
-| One set of error codes shared by your screens, logs, and API responses | `@edgeproc/errors` |
+| One set of error codes shared by your screens, logs, and API responses | `@gainratio/errors` |
 
 ## Install
 
 ```bash
-npm install @edgeproc/errors    # or: pnpm add @edgeproc/errors
+npm install @gainratio/errors    # or: pnpm add @gainratio/errors
 ```
 
 It needs Node 22.13 or newer and has no dependencies. There is nothing to
