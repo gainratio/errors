@@ -514,7 +514,7 @@ describe("the release-pipeline helpers themselves", () => {
     for (const bad of [
       "release/p.tgz",
       "p.tgz",
-      "@edgeproc/errors",
+      "@gainratio/errors",
       "user/repo",
     ]) {
       expect(isLocalPathSpec(bad)).toBe(false);

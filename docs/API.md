@@ -1,13 +1,13 @@
 # API guide
 
-Everything `@edgeproc/errors` exports, with examples. For how `classify` decides
-and why, see [Architecture](ARCHITECTURE.md). All examples run against v0.2.0,
+Everything `@gainratio/errors` exports, with examples. For how `classify` decides
+and why, see [Architecture](ARCHITECTURE.md). All examples run against v0.2.1,
 the current version on npm.
 
 ## The smallest loop
 
 ```ts
-import { corePack, defineErrorsWith } from "@edgeproc/errors";
+import { corePack, defineErrorsWith } from "@gainratio/errors";
 
 const errors = defineErrorsWith({}, corePack);
 
@@ -25,7 +25,7 @@ JSON), clone the repo and run `pnpm demo`. It builds the package and runs
 ## Add your own codes
 
 ```ts
-import { corePack, defineErrorsWith } from "@edgeproc/errors";
+import { corePack, defineErrorsWith } from "@gainratio/errors";
 
 // Start from the 10 everyday codes and add your own on top.
 export const errors = defineErrorsWith(
@@ -93,7 +93,7 @@ full list is in [Architecture](ARCHITECTURE.md#the-json-bodys-safety-rules).
 ## Throw a coded error when you already know the cause
 
 ```ts
-import { CanonicalError } from "@edgeproc/errors";
+import { CanonicalError } from "@gainratio/errors";
 
 // You know what happened, so there is nothing to classify.
 throw errors.create("config.missing", { field: "STRIPE_KEY" });
@@ -112,7 +112,7 @@ the code itself (`"config.missing"`), not the English sentence. Call
 `internal.unknown` (exported as `DEFAULT_FALLBACK_CODE`) unless you set one:
 
 ```ts
-import { defineErrorsWith } from "@edgeproc/errors";
+import { defineErrorsWith } from "@gainratio/errors";
 
 export const errors = defineErrorsWith({ fallbackCode: "shop.unknown" }, shopCodes);
 

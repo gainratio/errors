@@ -12,7 +12,7 @@ import {
 /**
  * `starterPack` is an AI/WASM catalog wearing a generic name: 10 of its 18 codes
  * are `ai.*` or `bundle.*`, three carry another app's UI in shipped English
- * ("Settings → AI"), and one string-couples to @edgeproc/privacy-core. It stays
+ * ("Settings → AI"), and one string-couples to @gainratio/privacy-core. It stays
  * exactly as shipped for the three vendored consumers; the split below is what a
  * stranger should reach for.
  */
@@ -89,7 +89,7 @@ describe("aiPack — the AI half, named honestly", () => {
     }
   });
 
-  it("does not string-couple to @edgeproc/privacy-core", () => {
+  it("does not string-couple to @gainratio/privacy-core", () => {
     // Widened to Catalog: `match` is absent from the literal type, which is the
     // point — the coupling is gone at the type level too.
     const entries: Catalog = aiPack;

@@ -1,4 +1,4 @@
-import { aiPack, corePack, defineErrorsWith } from "@edgeproc/errors";
+import { aiPack, corePack, defineErrorsWith } from "@gainratio/errors";
 
 // Your app's list of error codes: 10 everyday ones + 9 for calling an AI service.
 // Both lists claim some statuses (401, 404, 429, 5xx, timeouts). The list you

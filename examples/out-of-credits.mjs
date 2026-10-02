@@ -1,4 +1,4 @@
-import { aiPack, corePack, defineErrorsWith } from "@edgeproc/errors";
+import { aiPack, corePack, defineErrorsWith } from "@gainratio/errors";
 
 // Your app's error list: 10 everyday codes + 9 for calling an AI service.
 const errors = defineErrorsWith({}, corePack, aiPack);

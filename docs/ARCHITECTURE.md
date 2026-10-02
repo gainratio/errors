@@ -1,6 +1,6 @@
 # Architecture
 
-How `@edgeproc/errors` turns a raw failure into one code, why it is built that
+How `@gainratio/errors` turns a raw failure into one code, why it is built that
 way, and what the tests prove. For usage examples, see the [API guide](API.md).
 
 ## The short version
@@ -146,7 +146,7 @@ frozen on purpose. It is also an AI/WASM catalog with a generic name: 14 of its
 18 codes are `ai.*` or `bundle.*`, three of them name another app's
 "Settings → AI" screen in the English, and `ai.privacy.violation` carries a
 `match` rule that string-matches `"PrivacyViolationError"`, which ties it to
-`@edgeproc/privacy-core`. New code should use `corePack`.
+`@gainratio/privacy-core`. New code should use `corePack`.
 
 Its table: `401`/`403` → `ai.provider.unauthorized`, `402` →
 `ai.provider.out_of_credits`, `404` → `ai.model.unavailable`, `429` →
@@ -251,7 +251,7 @@ only.
 ## Status and roadmap
 
 Shipped: the catalog, `classify`, `describe`, `toProblemDetails`, `create`,
-`CanonicalError`, and the four packs, in v0.2.0 on npm (see the
+`CanonicalError`, and the four packs, in v0.2.1 on npm (see the
 [CHANGELOG](../CHANGELOG.md)).
 
 Planned: nothing is announced. No roadmap feature is implied by the interfaces
