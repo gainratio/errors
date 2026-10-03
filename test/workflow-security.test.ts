@@ -490,6 +490,107 @@ describe("release pipeline (publish.yml)", () => {
   });
 });
 
+// RELEASE-PLEASE — merging the release PR is the release. release-please.yml
+// runs on every push to main. It keeps the release PR open and, when that PR
+// merges, creates the `v<version>` tag and GitHub release.
+//
+// A tag or PR created with the default GITHUB_TOKEN starts no `push` or
+// `pull_request` workflow (GitHub's recursion guard), but `workflow_dispatch`
+// always does. So release-please.yml dispatches publish.yml AT THE TAG, which
+// keeps the npm OIDC claim `workflow = publish.yml` that the trusted publisher
+// is bound to, and dispatches ci.yml on the release PR's branch so its
+// required checks report. release-please.yml itself never holds `id-token`.
+describe("release automation (release-please.yml)", () => {
+  const releaseYaml = (): string =>
+    readFileSync(join(WORKFLOWS, "release-please.yml"), "utf8");
+  const releaseJob = (): string =>
+    jobsOf(releaseYaml()).get("release-please") ?? "";
+  const scripts = (): string => runScripts(releaseJob()).join("\n");
+
+  it("runs on pushes to main and nothing else", () => {
+    expect(releaseYaml()).toMatch(
+      /^on:\n {2}push:\n {4}branches: \[main\]\n\n/m,
+    );
+  });
+
+  it("runs release-please pinned to a commit SHA", () => {
+    expect(releaseJob()).toMatch(
+      /uses: googleapis\/release-please-action@[0-9a-f]{40} # v\d+\.\d+\.\d+\n/,
+    );
+  });
+
+  it("grants write scopes to the release job only, and never id-token", () => {
+    expect([...jobsOf(releaseYaml()).keys()]).toEqual(["release-please"]);
+    for (const scope of ["contents", "pull-requests", "actions"]) {
+      expect(releaseJob()).toMatch(new RegExp(`\\n\\s+${scope}: write\\b`));
+    }
+    expect(releaseYaml()).not.toContain("id-token");
+  });
+
+  it("dispatches publish.yml at the release tag when a release is created", () => {
+    expect(releaseJob()).toMatch(
+      /if: \$\{\{ steps\.release\.outputs\.release_created == 'true' \}\}/,
+    );
+    expect(releaseJob()).toMatch(
+      /RELEASE_TAG: \$\{\{ steps\.release\.outputs\.tag_name \}\}/,
+    );
+    expect(scripts()).toContain(
+      'gh workflow run publish.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_TAG"',
+    );
+  });
+
+  it("dispatches CI on the release PR branch so required checks report", () => {
+    expect(releaseJob()).toMatch(
+      /if: \$\{\{ steps\.release\.outputs\.prs_created == 'true' \}\}/,
+    );
+    expect(releaseJob()).toMatch(
+      /RELEASE_PR: \$\{\{ steps\.release\.outputs\.pr \}\}/,
+    );
+    expect(scripts()).toContain(
+      'release_branch="$(jq -r \'.headBranchName\' <<<"$RELEASE_PR")"',
+    );
+    expect(scripts()).toContain(
+      'gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$release_branch"',
+    );
+  });
+
+  it("never parses a release-please output inside an expression", () => {
+    // INVERTED 2026-10-03: the previous test pinned
+    // `RELEASE_BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}`
+    // as the contract. On the first run on main (no release PR, so `pr` is
+    // empty) GitHub evaluated that env expression anyway and failed the job:
+    // "Error reading JToken from JsonReader" (run 37135438146). The raw output
+    // goes into env as a string; jq parses it inside the gated step.
+    expect(releaseYaml()).not.toMatch(/fromJSON\(/);
+  });
+
+  it("never interpolates an expression into a shell script", () => {
+    expect(runScripts(releaseYaml()).filter((s) => s.includes("${{"))).toEqual(
+      [],
+    );
+  });
+
+  it("lets publish.yml and ci.yml be dispatched", () => {
+    const onBlock = (file: string): string =>
+      /^on:\n((?: {2}.*\n|\n)*)/m.exec(
+        readFileSync(join(WORKFLOWS, file), "utf8"),
+      )?.[1] ?? "";
+    expect(onBlock("publish.yml")).toMatch(/^ {2}workflow_dispatch:/m);
+    expect(onBlock("ci.yml")).toMatch(/^ {2}workflow_dispatch:/m);
+  });
+
+  it("publishes a dispatched run only from a tag ref", () => {
+    // A dispatch on a branch named like a tag (`v0.2.2`) would otherwise pass
+    // the tag == version check. Only a tag ref may publish.
+    const build = runScripts(
+      jobsOf(readFileSync(join(WORKFLOWS, "publish.yml"), "utf8")).get(
+        "build",
+      ) ?? "",
+    ).join("\n");
+    expect(build).toContain('if [ "$GITHUB_REF_TYPE" != "tag" ]; then');
+  });
+});
+
 describe("the release-pipeline helpers themselves", () => {
   it("flags @latest on an executable line but not in a comment", () => {
     expect(hasFloatingLatest("      - run: npm i -g npm@latest\n")).toBe(true);

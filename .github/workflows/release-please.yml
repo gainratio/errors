@@ -1,0 +1,70 @@
+# errors — .github/workflows/release-please.yml
+#
+# Releasing is "merge the release PR". On every push to main, release-please
+# (googleapis/release-please-action) reads the conventional commits since the
+# last release and keeps ONE release PR open that bumps package.json, writes the
+# CHANGELOG entry, and rewrites the version docs/API.md and docs/ARCHITECTURE.md
+# name. Merging that PR is the owner's explicit request to publish: on the push
+# that merge makes, release-please creates the `v<version>` tag and GitHub
+# release, and this job dispatches publish.yml at that tag.
+#
+# WHY DISPATCH, NOT A TAG PUSH OR A REUSABLE CALL
+#   * A tag or PR created with the default GITHUB_TOKEN starts no `push` or
+#     `pull_request` workflow (GitHub's recursion guard). `workflow_dispatch`
+#     is the documented exception: it always starts a run.
+#   * npm's trusted publisher for @gainratio/errors is bound to the workflow
+#     FILE `publish.yml`. A dispatched publish.yml run is a publish.yml run, at
+#     the tag ref, so the OIDC token names publish.yml exactly as a tag push
+#     does. Calling publish.yml as a reusable workflow from here would make the
+#     token name THIS file instead, and npm would refuse it.
+#   * The same recursion guard leaves the release PR without its required
+#     checks, so this job also dispatches ci.yml on the release PR's branch.
+#
+# This workflow never holds the OIDC scope. The publish credential stays in
+# publish.yml's credential-only job.
+name: Release PR
+
+on:
+  push:
+    branches: [main]
+
+# Read-only at the top; the write scopes are granted to the one job below.
+permissions:
+  contents: read
+
+# One release-please run at a time; a newer push supersedes a queued one.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release tag and GitHub release
+      pull-requests: write # open and update the release PR
+      actions: write # dispatch publish.yml and ci.yml
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Publish the release (dispatch publish.yml at the new tag)
+        if: ${{ steps.release.outputs.release_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+        run: gh workflow run publish.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_TAG"
+
+      - name: Run CI on the release PR (its required checks)
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # The raw JSON, parsed by jq below. Parsing it in an expression here
+          # failed the job on an empty `pr` even though the step was skipped.
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
+        run: |
+          release_branch="$(jq -r '.headBranchName' <<<"$RELEASE_PR")"
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$release_branch"
