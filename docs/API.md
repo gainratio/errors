@@ -1,7 +1,7 @@
 # API guide
 
 Everything `@gainratio/errors` exports, with examples. For how `classify` decides
-and why, see [Architecture](ARCHITECTURE.md). All examples run against v0.2.1,
+and why, see [Architecture](ARCHITECTURE.md). All examples run against v0.2.1, <!-- x-release-please-version -->
 the current version on npm.
 
 ## The smallest loop

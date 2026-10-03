@@ -1,7 +1,8 @@
 # errors — .github/workflows/publish.yml
 #
-# npm release of `@gainratio/errors` via OIDC Trusted Publishing. Pushing a `v*` tag is the
-# whole trigger. There is NO npm write token in this repository, and there must never be one:
+# npm release of `@gainratio/errors` via OIDC Trusted Publishing. The normal trigger is
+# merging release-please's release PR: release-please.yml then dispatches this file at the
+# new `v*` tag. Pushing a `v*` tag by hand still works the same way. There is NO npm write token in this repository, and there must never be one:
 # the credential is a short-lived OIDC token GitHub mints for the `publish` job below, which
 # npm verifies against the trusted publisher registered as {hseshadr, errors, publish.yml}.
 #
@@ -45,6 +46,12 @@ name: Publish (npm, OIDC)
 on:
   push:
     tags: ["v*"]
+  # release-please.yml dispatches this file AT THE RELEASE TAG once the release
+  # PR merges: the tag it creates with GITHUB_TOKEN starts no `push` run, and a
+  # dispatch is the documented exception. A dispatched run is still a
+  # publish.yml run, so npm's trusted publisher binding is unchanged. Every
+  # check below applies to it unchanged, plus one: the ref must be a tag.
+  workflow_dispatch:
 
 # Top-level is read-only. The OIDC scope is granted on the publish job alone: a top-level
 # scope applies to every job in the file, including ones added later.
@@ -63,6 +70,15 @@ jobs:
     permissions:
       contents: read
     steps:
+      # A tag push is always a tag ref. A dispatch can name a branch, and a
+      # branch called `v0.2.2` would pass the version check below. Refuse it.
+      - name: Require a tag ref
+        run: |
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "::error::Publish runs only at a v* tag, not the $GITHUB_REF_TYPE $GITHUB_REF_NAME."
+            exit 1
+          fi
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Nothing here pushes; do not leave the token in .git/config.
