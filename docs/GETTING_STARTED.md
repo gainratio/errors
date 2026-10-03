@@ -90,7 +90,7 @@ the same settings.
 | `test/` | One Vitest file per behaviour. `readme.contract.test.ts` checks the README, including that its example output is real. |
 | `examples/` | Runnable scripts. `try.mjs` is the README example. |
 | `docs/` | [Architecture](ARCHITECTURE.md), the [API guide](API.md), this guide, and the interactive architecture map. |
-| `.github/workflows/` | `ci.yml` (runs `pnpm gate`), `publish.yml` (npm release with provenance), `security-audit.yml` (weekly). |
+| `.github/workflows/` | `ci.yml` (runs `pnpm gate`), `publish.yml` (npm release with provenance), `release-please.yml` (keeps the release PR open, starts `publish.yml` when it merges), `security-audit.yml` (weekly). |
 
 ## 5. Make your first change
 
@@ -136,7 +136,8 @@ A typical small change: teach `corePack` a new rule, or add a code. Say you want
    `starterPack` tests), read it before changing it. Those tests exist because other apps depend on that exact
    behaviour. `starterPack` must never change.
 
-6. Add a line to `CHANGELOG.md` under `[Unreleased]`.
+6. Title the commit `fix: ...` or `feat: ...`. That line becomes the
+   `CHANGELOG.md` entry at the next release, so do not edit the file by hand.
 
 `pnpm test:watch` gives you a fast loop while you work, and `pnpm lint:fix`
 fixes formatting.
@@ -150,4 +151,6 @@ fixes formatting.
   kept, no renamed error codes (deprecate and add a new one instead), no new
   runtime dependency, and no new export without a real caller. See
   [CONTRIBUTING.md](../CONTRIBUTING.md).
-- Do not bump the version or publish. Releases are cut separately.
+- Do not bump the version or publish. A release is one merged pull request
+  that release-please opens; see
+  [How to release](../CONTRIBUTING.md#how-to-release).

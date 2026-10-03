@@ -5,7 +5,9 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+From 0.2.2 on, release-please writes each entry from the conventional-commit
+messages merged since the last release (`feat:` under Added, `fix:` under
+Fixed). Entries up to 0.2.1 were written by hand.
 
 ## [0.2.1] - 2026-10-01
 
