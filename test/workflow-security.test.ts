@@ -523,11 +523,27 @@ describe("release automation (release-please.yml)", () => {
 
   it("dispatches CI on the release PR branch so required checks report", () => {
     expect(releaseJob()).toMatch(
-      /RELEASE_BRANCH: \$\{\{ fromJSON\(steps\.release\.outputs\.pr\)\.headBranchName \}\}/,
+      /if: \$\{\{ steps\.release\.outputs\.prs_created == 'true' \}\}/,
+    );
+    expect(releaseJob()).toMatch(
+      /RELEASE_PR: \$\{\{ steps\.release\.outputs\.pr \}\}/,
     );
     expect(scripts()).toContain(
-      'gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_BRANCH"',
+      'release_branch="$(jq -r \'.headBranchName\' <<<"$RELEASE_PR")"',
     );
+    expect(scripts()).toContain(
+      'gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$release_branch"',
+    );
+  });
+
+  it("never parses a release-please output inside an expression", () => {
+    // INVERTED 2026-10-03: the previous test pinned
+    // `RELEASE_BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}`
+    // as the contract. On the first run on main (no release PR, so `pr` is
+    // empty) GitHub evaluated that env expression anyway and failed the job:
+    // "Error reading JToken from JsonReader" (run 37135438146). The raw output
+    // goes into env as a string; jq parses it inside the gated step.
+    expect(releaseYaml()).not.toMatch(/fromJSON\(/);
   });
 
   it("never interpolates an expression into a shell script", () => {
