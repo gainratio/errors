@@ -2,3 +2,6 @@ node_modules
 dist
 coverage
 *.log
+
+# macOS Finder metadata
+.DS_Store
