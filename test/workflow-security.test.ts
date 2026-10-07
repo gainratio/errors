@@ -117,14 +117,45 @@ describe("GitHub Actions token scope", () => {
 // red, so "the job is in the file" is the only thing a unit test can prove.
 // That the scan actually CATCHES a secret is proven separately, by planting one
 // and watching the check go red on a real PR.
-describe("secret scanning", () => {
-  const SECRET_SCAN = "hseshadr/ci/.github/workflows/secret-scan.yml";
+// The central ci repository moves from the hseshadr account to the gainratio
+// org. GitHub does not redirect `uses:` for reusable workflows, so the caller
+// switches owner in the same session ci moves, at the same SHA. Until then both
+// exact owners count as ci; anything else is not ci. Drop hseshadr after.
+const CENTRAL_CI_OWNERS = ["gainratio", "hseshadr"] as const;
+const SECRET_SCAN_PATH = "ci/.github/workflows/secret-scan.yml";
+const CI_V3_3_0_COMMIT = "8166345c9355dde54c12fa95d0457c4ea97d3e64";
 
+/** True only for the secret-scan brick under an allowed central ci owner. */
+const isCentralSecretScanRef = (ref: string): boolean =>
+  CENTRAL_CI_OWNERS.some((owner) =>
+    ref.startsWith(`${owner}/${SECRET_SCAN_PATH}@`),
+  );
+
+/** `owner/ci/...@sha` without its owner, so a pin reads the same under both. */
+const withoutOwner = (ref: string): string => ref.slice(ref.indexOf("/") + 1);
+
+describe("secret scanning", () => {
   const secretScanRefs = (): readonly string[] =>
     readWorkflows()
       .flatMap(refsOf)
       .map((entry) => entry.split(": ")[1] ?? "")
-      .filter((ref) => ref.startsWith(`${SECRET_SCAN}@`));
+      .filter(isCentralSecretScanRef);
+
+  it.each(["gainratio", "hseshadr"])(
+    "recognises the brick from %s/ci at the pinned SHA",
+    (owner) => {
+      const ref = `${owner}/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`;
+      expect(isCentralSecretScanRef(ref)).toBe(true);
+    },
+  );
+
+  it.each(["attacker", "gainratio-evil", "hseshadrx", "Gainratio"])(
+    "refuses a secret-scan brick from %s, which is not ci",
+    (owner) => {
+      const ref = `${owner}/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`;
+      expect(isCentralSecretScanRef(ref)).toBe(false);
+    },
+  );
 
   it("calls ci's reusable secret-scan brick", () => {
     expect(secretScanRefs()).not.toEqual([]);
@@ -141,8 +172,8 @@ describe("secret scanning", () => {
     // ci-v3.3.0 (8166345) keeps findings in the job log: no PR comment, no
     // summary, no SARIF artifact. ci-v3.2.1 still uploaded them. Later ci
     // commits delete the workflow, so newer is not available, only older.
-    expect(secretScanRefs()).toEqual([
-      `${SECRET_SCAN}@8166345c9355dde54c12fa95d0457c4ea97d3e64`,
+    expect(secretScanRefs().map(withoutOwner)).toEqual([
+      `${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`,
     ]);
   });
 
@@ -194,6 +225,16 @@ describe("dependency security audit", () => {
     expect(ecosystems).toEqual(["github-actions", "npm"]);
     expect(config.match(/interval:\s*weekly/g)).toHaveLength(2);
   });
+
+  it.each(["gainratio", "hseshadr"])(
+    "never bumps the retired %s/ci catalog pins",
+    (owner) => {
+      // ci's default branch deleted secret-scan.yml; a bump past ci-v3.3.0
+      // breaks CI before any job starts, under either owner of ci.
+      const config = readFileSync(DEPENDABOT, "utf8");
+      expect(config).toContain(`- dependency-name: "${owner}/ci*"`);
+    },
+  );
 
   it("documents the install-time supply-chain controls for developers", () => {
     const guide = readFileSync(GETTING_STARTED, "utf8");
