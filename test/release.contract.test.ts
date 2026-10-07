@@ -19,13 +19,23 @@ const VERSION = (JSON.parse(read("package.json")) as { version: string })
   .version;
 
 /**
+ * The exact owners this repository may live under while it moves from the
+ * hseshadr account to the gainratio org. A literal list, never a pattern:
+ * release-please writes compare links under whichever owner the repo has.
+ * Drop hseshadr once the move is finished.
+ */
+const RELEASE_OWNERS = ["gainratio", "hseshadr"] as const;
+
+/**
  * A released CHANGELOG heading, in either shape this file holds:
  *   `## [0.2.0] - 2026-09-26`  (hand-written, Keep a Changelog, up to 0.2.1)
  *   `## [0.2.2](https://github.com/.../compare/v0.2.1...v0.2.2) (2026-10-03)`
  *   `### [0.2.2](...) (2026-10-03)`  (release-please writes H3 for patches)
  */
-const RELEASED_HEADING =
-  /^###? \[(\d+\.\d+\.\d+)\](?: - |\(https:\/\/github\.com\/hseshadr\/errors\/compare\/v\d+\.\d+\.\d+\.\.\.v\1\) \()(\d{4}-\d{2}-\d{2})\)?$/gm;
+const RELEASED_HEADING = new RegExp(
+  String.raw`^###? \[(\d+\.\d+\.\d+)\](?: - |\(https:\/\/github\.com\/(?:${RELEASE_OWNERS.join("|")})\/errors\/compare\/v\d+\.\d+\.\d+\.\.\.v\1\) \()(\d{4}-\d{2}-\d{2})\)?$`,
+  "gm",
+);
 
 const newestRelease = (changelog: string): string | undefined =>
   [...changelog.matchAll(RELEASED_HEADING)][0]?.[1];
@@ -64,6 +74,11 @@ describe("the CHANGELOG heading rule itself", () => {
       "### [0.2.2](https://github.com/hseshadr/errors/compare/v0.2.1...v0.2.2) (2026-10-03)",
       "0.2.2",
     ],
+    [
+      "a release-please heading written after the move to the gainratio org",
+      "## [0.3.1](https://github.com/gainratio/errors/compare/v0.3.0...v0.3.1) (2026-10-08)",
+      "0.3.1",
+    ],
   ])("reads %s", (_label, heading, version) => {
     expect(newestRelease(`# Changelog\n\n${heading}\n`)).toBe(version);
   });
@@ -78,6 +93,14 @@ describe("the CHANGELOG heading rule itself", () => {
     [
       "a compare link to another repository",
       "## [0.2.2](https://github.com/someone/else/compare/v0.2.1...v0.2.2) (2026-10-03)",
+    ],
+    [
+      "a compare link to errors under an owner outside the allow-list",
+      "## [0.3.1](https://github.com/attacker/errors/compare/v0.3.0...v0.3.1) (2026-10-08)",
+    ],
+    [
+      "a compare link to an owner that merely starts with an allowed one",
+      "## [0.3.1](https://github.com/gainratio-evil/errors/compare/v0.3.0...v0.3.1) (2026-10-08)",
     ],
   ])("ignores %s", (_label, heading) => {
     expect(newestRelease(`# Changelog\n\n${heading}\n`)).toBeUndefined();
