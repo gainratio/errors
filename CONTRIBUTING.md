@@ -11,7 +11,7 @@ fresh clone to a first change, with a map of the code.
 You need Node >= 22.13 and pnpm. The exact Node version CI uses is 24.
 
 ```bash
-git clone https://github.com/hseshadr/errors.git
+git clone https://github.com/gainratio/errors.git
 cd errors
 pnpm install
 pnpm gate

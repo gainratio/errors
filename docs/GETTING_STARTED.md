@@ -20,7 +20,7 @@ Node 24 (`nvm use 24`, then `corepack enable` again) fixed it for us.
 ## 2. Clone, install, and run the tests
 
 ```bash
-git clone https://github.com/hseshadr/errors.git && cd errors   # ~1.5s
+git clone https://github.com/gainratio/errors.git && cd errors   # ~1.5s
 corepack enable                                                  # ~0.2s
 pnpm install                                                     # ~1.5s with a warm pnpm cache
 pnpm gate                                                        # 6-16s

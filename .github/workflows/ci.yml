@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   # gitleaks — full-history secret scan on EVERY pull request, via the shared
-  # brick in hseshadr/ci (where the mechanics and their rationale live). It runs
+  # brick in gainratio/ci (where the mechanics and their rationale live). It runs
   # at the PR because a secret is the one defect you cannot fix by reverting:
   # once a credential lands in this public history it is burned, and a revert
   # only hides it from HEAD. This repo previously ran no secret scan at all — it
@@ -40,7 +40,7 @@ jobs:
     # `# ci-v3` would silently go wrong the moment upstream moves that tag.
     # Pinning is transitive and holds here: at this SHA the brick's own two
     # `uses:` refs (actions/checkout, gitleaks/gitleaks-action) are both SHAs.
-    uses: hseshadr/ci/.github/workflows/secret-scan.yml@8166345c9355dde54c12fa95d0457c4ea97d3e64 # ci-v3.3.0
+    uses: gainratio/ci/.github/workflows/secret-scan.yml@8166345c9355dde54c12fa95d0457c4ea97d3e64 # ci-v3.3.0
     with:
       full-history: true
 

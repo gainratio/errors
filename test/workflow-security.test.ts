@@ -117,11 +117,10 @@ describe("GitHub Actions token scope", () => {
 // red, so "the job is in the file" is the only thing a unit test can prove.
 // That the scan actually CATCHES a secret is proven separately, by planting one
 // and watching the check go red on a real PR.
-// The central ci repository moves from the hseshadr account to the gainratio
-// org. GitHub does not redirect `uses:` for reusable workflows, so the caller
-// switches owner in the same session ci moves, at the same SHA. Until then both
-// exact owners count as ci; anything else is not ci. Drop hseshadr after.
-const CENTRAL_CI_OWNERS = ["gainratio", "hseshadr"] as const;
+// The central ci repository moved from the hseshadr account to the gainratio
+// org. GitHub does not redirect `uses:` for reusable workflows, so a caller
+// still naming hseshadr/ci fails before any job starts. Only gainratio is ci.
+const CENTRAL_CI_OWNERS = ["gainratio"] as const;
 const SECRET_SCAN_PATH = "ci/.github/workflows/secret-scan.yml";
 const CI_V3_3_0_COMMIT = "8166345c9355dde54c12fa95d0457c4ea97d3e64";
 
@@ -131,9 +130,6 @@ const isCentralSecretScanRef = (ref: string): boolean =>
     ref.startsWith(`${owner}/${SECRET_SCAN_PATH}@`),
   );
 
-/** `owner/ci/...@sha` without its owner, so a pin reads the same under both. */
-const withoutOwner = (ref: string): string => ref.slice(ref.indexOf("/") + 1);
-
 describe("secret scanning", () => {
   const secretScanRefs = (): readonly string[] =>
     readWorkflows()
@@ -141,7 +137,7 @@ describe("secret scanning", () => {
       .map((entry) => entry.split(": ")[1] ?? "")
       .filter(isCentralSecretScanRef);
 
-  it.each(["gainratio", "hseshadr"])(
+  it.each(["gainratio"])(
     "recognises the brick from %s/ci at the pinned SHA",
     (owner) => {
       const ref = `${owner}/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`;
@@ -149,7 +145,7 @@ describe("secret scanning", () => {
     },
   );
 
-  it.each(["attacker", "gainratio-evil", "hseshadrx", "Gainratio"])(
+  it.each(["hseshadr", "attacker", "gainratio-evil", "hseshadrx", "Gainratio"])(
     "refuses a secret-scan brick from %s, which is not ci",
     (owner) => {
       const ref = `${owner}/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`;
@@ -172,8 +168,8 @@ describe("secret scanning", () => {
     // ci-v3.3.0 (8166345) keeps findings in the job log: no PR comment, no
     // summary, no SARIF artifact. ci-v3.2.1 still uploaded them. Later ci
     // commits delete the workflow, so newer is not available, only older.
-    expect(secretScanRefs().map(withoutOwner)).toEqual([
-      `${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`,
+    expect(secretScanRefs()).toEqual([
+      `gainratio/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`,
     ]);
   });
 
@@ -279,7 +275,7 @@ describe("the pin rule itself", () => {
     // reusable workflow still resolves at run time, so it gets no exemption.
     [
       "a first-party ref on a moving tag",
-      "hseshadr/ci/.github/workflows/frontend-gate.yml@ci-v2",
+      "gainratio/ci/.github/workflows/frontend-gate.yml@ci-v2",
     ],
   ])("rejects %s", (_label, ref) => {
     expect(isImmutable(ref)).toBe(false);
@@ -292,7 +288,7 @@ describe("the pin rule itself", () => {
     ],
     [
       "a pinned reusable workflow with a subpath",
-      "hseshadr/ci/.github/workflows/frontend-gate.yml@bc68fde66f0805971e1b9aa444933b7975da80b1",
+      "gainratio/ci/.github/workflows/frontend-gate.yml@bc68fde66f0805971e1b9aa444933b7975da80b1",
     ],
     ["a local action", "./.github/actions/setup"],
   ])("accepts %s", (_label, ref) => {
