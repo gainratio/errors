@@ -19,12 +19,12 @@ const VERSION = (JSON.parse(read("package.json")) as { version: string })
   .version;
 
 /**
- * The exact owners this repository may live under while it moves from the
- * hseshadr account to the gainratio org. A literal list, never a pattern:
- * release-please writes compare links under whichever owner the repo has.
- * Drop hseshadr once the move is finished.
+ * The exact owner this repository lives under. It moved from the hseshadr
+ * account to the gainratio org. A literal list, never a pattern:
+ * release-please writes compare links under the owner the repo has.
  */
-const RELEASE_OWNERS = ["gainratio", "hseshadr"] as const;
+const RELEASE_OWNERS = ["gainratio"] as const;
+const REPO_URL = "https://github.com/gainratio/errors";
 
 /**
  * A released CHANGELOG heading, in either shape this file holds:
@@ -61,17 +61,40 @@ describe("release contract", () => {
   );
 });
 
+describe("npm provenance repository match", () => {
+  // npm's OIDC trusted publishing refuses a tarball whose repository.url is
+  // not the GitHub repo that ran publish.yml (ENEEDAUTH). The repo is
+  // gainratio/errors, so the manifest has to say so, byte for byte.
+  const manifest = JSON.parse(read("package.json")) as {
+    homepage: string;
+    repository: { type: string; url: string };
+    bugs: { url: string };
+  };
+
+  it("points repository.url at gainratio/errors", () => {
+    expect(manifest.repository).toEqual({
+      type: "git",
+      url: `git+${REPO_URL}.git`,
+    });
+  });
+
+  it("points homepage and bugs at gainratio/errors", () => {
+    expect(manifest.homepage).toBe(`${REPO_URL}#readme`);
+    expect(manifest.bugs.url).toBe(`${REPO_URL}/issues`);
+  });
+});
+
 describe("the CHANGELOG heading rule itself", () => {
   it.each([
     ["a Keep a Changelog heading", "## [0.2.0] - 2026-09-26", "0.2.0"],
     [
       "a release-please minor heading",
-      "## [0.3.0](https://github.com/hseshadr/errors/compare/v0.2.1...v0.3.0) (2026-10-03)",
+      "## [0.3.0](https://github.com/gainratio/errors/compare/v0.2.1...v0.3.0) (2026-10-03)",
       "0.3.0",
     ],
     [
       "a release-please patch heading",
-      "### [0.2.2](https://github.com/hseshadr/errors/compare/v0.2.1...v0.2.2) (2026-10-03)",
+      "### [0.2.2](https://github.com/gainratio/errors/compare/v0.2.1...v0.2.2) (2026-10-03)",
       "0.2.2",
     ],
     [
@@ -88,11 +111,15 @@ describe("the CHANGELOG heading rule itself", () => {
     ["a heading with no date", "## [0.2.2]"],
     [
       "a compare link that ends at another version",
-      "## [0.2.2](https://github.com/hseshadr/errors/compare/v0.2.1...v0.2.3) (2026-10-03)",
+      "## [0.2.2](https://github.com/gainratio/errors/compare/v0.2.1...v0.2.3) (2026-10-03)",
     ],
     [
       "a compare link to another repository",
       "## [0.2.2](https://github.com/someone/else/compare/v0.2.1...v0.2.2) (2026-10-03)",
+    ],
+    [
+      "a compare link under hseshadr, the owner this repository left",
+      "## [0.3.1](https://github.com/hseshadr/errors/compare/v0.3.0...v0.3.1) (2026-10-08)",
     ],
     [
       "a compare link to errors under an owner outside the allow-list",

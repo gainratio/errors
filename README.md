@@ -4,9 +4,9 @@ Give every error in your JavaScript or TypeScript app one fixed code and one cle
 
 **`npm install @gainratio/errors`** (Node 22.13 or newer, no dependencies).
 
-[![CI](https://github.com/hseshadr/errors/actions/workflows/ci.yml/badge.svg)](https://github.com/hseshadr/errors/actions/workflows/ci.yml)
+[![CI](https://github.com/gainratio/errors/actions/workflows/ci.yml/badge.svg)](https://github.com/gainratio/errors/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@gainratio/errors)](https://www.npmjs.com/package/@gainratio/errors)
-[![License: MIT](https://img.shields.io/github/license/hseshadr/errors)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/gainratio/errors)](LICENSE)
 
 In most apps, every `catch` block writes its own error message, so one problem
 shows up in several different ways. An AI provider says "402 Payment Required",
@@ -164,7 +164,7 @@ the [API guide](docs/API.md)).
 ## Develop
 
 ```bash
-git clone https://github.com/hseshadr/errors.git && cd errors
+git clone https://github.com/gainratio/errors.git && cd errors
 corepack enable && pnpm install
 pnpm gate
 ```

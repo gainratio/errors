@@ -112,83 +112,93 @@ describe("GitHub Actions token scope", () => {
 // pinned ci's `ts-publish.yml` and nothing else, so no `gitleaks` check ever
 // reported here and branch protection had nothing to require.
 //
-// This rule asserts the WIRING, which is the part that silently rots: a private
-// or misconfigured reusable workflow makes caller runs VANISH rather than go
-// red, so "the job is in the file" is the only thing a unit test can prove.
-// That the scan actually CATCHES a secret is proven separately, by planting one
-// and watching the check go red on a real PR.
-// The central ci repository moves from the hseshadr account to the gainratio
-// org. GitHub does not redirect `uses:` for reusable workflows, so the caller
-// switches owner in the same session ci moves, at the same SHA. Until then both
-// exact owners count as ci; anything else is not ci. Drop hseshadr after.
-const CENTRAL_CI_OWNERS = ["gainratio", "hseshadr"] as const;
-const SECRET_SCAN_PATH = "ci/.github/workflows/secret-scan.yml";
-const CI_V3_3_0_COMMIT = "8166345c9355dde54c12fa95d0457c4ea97d3e64";
+// CONTRACT CHANGE (2026-10-08): this block used to require ci's reusable
+// secret-scan brick pinned at ci-v3.3.0. ci retired that catalog (7c75ff1), and
+// after the move to the gainratio ORG gitleaks-action refuses to run without a
+// license. The scan is now an inline job: a faithful copy of the ci-v3.3.0
+// brick's job, plus the org's GITLEAKS_LICENSE secret on the action step.
+//
+// These rules assert the WIRING. That the scan actually CATCHES a secret is
+// proven separately, by planting one and watching the check go red on a PR.
+const GITLEAKS_ACTION_COMMIT = "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e";
+// biome-ignore lint/suspicious/noTemplateCurlyInString: a literal GitHub Actions expression, not a template.
+const LICENSE_ENV = "GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}";
 
-/** True only for the secret-scan brick under an allowed central ci owner. */
-const isCentralSecretScanRef = (ref: string): boolean =>
-  CENTRAL_CI_OWNERS.some((owner) =>
-    ref.startsWith(`${owner}/${SECRET_SCAN_PATH}@`),
+/** The lines of the step that starts at `- uses: <prefix>`, or "" if absent. */
+function stepOf(yaml: string, prefix: string): string {
+  const lines = yaml.split("\n");
+  const start = lines.findIndex((line) =>
+    line.trimStart().startsWith(`- uses: ${prefix}`),
   );
-
-/** `owner/ci/...@sha` without its owner, so a pin reads the same under both. */
-const withoutOwner = (ref: string): string => ref.slice(ref.indexOf("/") + 1);
+  if (start === -1) return "";
+  const indent = (lines[start] ?? "").indexOf("-");
+  const rest = lines.slice(start + 1);
+  const end = rest.findIndex(
+    (line) => line.trim() !== "" && line.search(/\S/) <= indent,
+  );
+  return [lines[start], ...(end === -1 ? rest : rest.slice(0, end))].join("\n");
+}
 
 describe("secret scanning", () => {
-  const secretScanRefs = (): readonly string[] =>
-    readWorkflows()
-      .flatMap(refsOf)
-      .map((entry) => entry.split(": ")[1] ?? "")
-      .filter(isCentralSecretScanRef);
+  const ciYaml = (): string =>
+    readWorkflows().find(({ file }) => file === "ci.yml")?.yaml ?? "";
+  const gitleaksStep = (): string =>
+    stepOf(ciYaml(), "gitleaks/gitleaks-action@");
 
-  it.each(["gainratio", "hseshadr"])(
-    "recognises the brick from %s/ci at the pinned SHA",
-    (owner) => {
-      const ref = `${owner}/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`;
-      expect(isCentralSecretScanRef(ref)).toBe(true);
-    },
-  );
-
-  it.each(["attacker", "gainratio-evil", "hseshadrx", "Gainratio"])(
-    "refuses a secret-scan brick from %s, which is not ci",
-    (owner) => {
-      const ref = `${owner}/${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`;
-      expect(isCentralSecretScanRef(ref)).toBe(false);
-    },
-  );
-
-  it("calls ci's reusable secret-scan brick", () => {
-    expect(secretScanRefs()).not.toEqual([]);
+  it("finds the step it checks (guards against a vacuous pass)", () => {
+    expect(
+      stepOf("  - uses: a/b@c\n    env:\n      X: 1\n  - run: y", "a/b@"),
+    ).toBe("  - uses: a/b@c\n    env:\n      X: 1");
+    expect(stepOf("  - run: y", "a/b@")).toBe("");
   });
 
-  it("pins the secret-scan brick to a commit SHA, never a tag", () => {
-    // `@ci-v3` would resolve at run time to whatever that tag points at today.
-    // The scan holds this repo's token; a mutable ref here is a supply chain.
-    const unpinned = secretScanRefs().filter((ref) => !isImmutable(ref));
-    expect(unpinned).toEqual([]);
+  it("reports under the exact check name branch protection requires", () => {
+    expect(ciYaml()).toMatch(
+      /^ {2}gitleaks:\n {4}name: Secret scan \/ gitleaks$/m,
+    );
   });
 
-  it("pins ci-v3.3.0, the last release that ships the brick", () => {
-    // ci-v3.3.0 (8166345) keeps findings in the job log: no PR comment, no
-    // summary, no SARIF artifact. ci-v3.2.1 still uploaded them. Later ci
-    // commits delete the workflow, so newer is not available, only older.
-    expect(secretScanRefs().map(withoutOwner)).toEqual([
-      `${SECRET_SCAN_PATH}@${CI_V3_3_0_COMMIT}`,
-    ]);
+  it("no longer calls ci's retired reusable secret-scan brick", () => {
+    expect(ciYaml()).not.toContain("secret-scan.yml@");
   });
 
-  it("asks the brick for full history, not just the event range", () => {
-    // Without full-history the action scans only the commits a push or PR
-    // introduced, and a push already on main scans zero commits and passes.
-    const ci = readWorkflows().find(({ file }) => file === "ci.yml");
-    expect(ci?.yaml).toMatch(
-      /secret-scan\.yml@[0-9a-f]{40}[^\n]*\n\s+with:\n\s+full-history: true\n/,
+  it("runs gitleaks-action pinned to the ci-v3.3.0 brick's commit SHA", () => {
+    expect(gitleaksStep()).toContain(
+      `- uses: gitleaks/gitleaks-action@${GITLEAKS_ACTION_COMMIT} # v3.0.0`,
+    );
+  });
+
+  it("hands the action the org license from secrets, never a literal", () => {
+    // gainratio is an organization: without this the action exits before
+    // scanning with "missing gitleaks license".
+    expect(gitleaksStep()).toContain(LICENSE_ENV);
+  });
+
+  it("keeps findings in the redacted job log only", () => {
+    const step = gitleaksStep();
+    for (const flag of ["COMMENTS", "SUMMARY", "UPLOAD_ARTIFACT"]) {
+      expect(step).toContain(`GITLEAKS_ENABLE_${flag}: "false"`);
+    }
+  });
+
+  it("checks out every commit and sweeps full history, not just the event range", () => {
+    // The action alone scans only the commits a push or PR introduced; a push
+    // already on main scans zero commits and passes.
+    const ci = ciYaml();
+    expect(stepOf(ci, "actions/checkout@")).toMatch(/^\s+fetch-depth: 0$/m);
+    expect(ci).toContain(
+      'gitleaks git --redact --no-banner --log-opts="--all" .',
+    );
+  });
+
+  it("grants the job only contents and pull-requests read", () => {
+    expect(ciYaml()).toMatch(
+      /name: Secret scan \/ gitleaks\n(?:\s*#.*\n)*\s+permissions:\n\s+contents: read\n\s+pull-requests: read\n/,
     );
   });
 
   it("runs the scan on pull requests, where a merge can still be stopped", () => {
-    const ci = readWorkflows().find(({ file }) => file === "ci.yml");
-    expect(ci?.yaml).toMatch(/^on:(?:.|\n)*?^\s+pull_request:/m);
+    expect(ciYaml()).toMatch(/^on:(?:.|\n)*?^\s+pull_request:/m);
   });
 });
 
@@ -279,7 +289,7 @@ describe("the pin rule itself", () => {
     // reusable workflow still resolves at run time, so it gets no exemption.
     [
       "a first-party ref on a moving tag",
-      "hseshadr/ci/.github/workflows/frontend-gate.yml@ci-v2",
+      "gainratio/ci/.github/workflows/frontend-gate.yml@ci-v2",
     ],
   ])("rejects %s", (_label, ref) => {
     expect(isImmutable(ref)).toBe(false);
@@ -292,7 +302,7 @@ describe("the pin rule itself", () => {
     ],
     [
       "a pinned reusable workflow with a subpath",
-      "hseshadr/ci/.github/workflows/frontend-gate.yml@bc68fde66f0805971e1b9aa444933b7975da80b1",
+      "gainratio/ci/.github/workflows/frontend-gate.yml@bc68fde66f0805971e1b9aa444933b7975da80b1",
     ],
     ["a local action", "./.github/actions/setup"],
   ])("accepts %s", (_label, ref) => {

@@ -4,7 +4,7 @@
 # merging release-please's release PR: release-please.yml then dispatches this file at the
 # new `v*` tag. Pushing a `v*` tag by hand still works the same way. There is NO npm write token in this repository, and there must never be one:
 # the credential is a short-lived OIDC token GitHub mints for the `publish` job below, which
-# npm verifies against the trusted publisher registered as {hseshadr, errors, publish.yml}.
+# npm verifies against the trusted publisher registered as {gainratio, errors, publish.yml}.
 #
 # THE FILE NAME IS LOAD-BEARING. npm binds the trusted publisher to this workflow's filename,
 # so renaming this file silently turns every future release into a 404/ENEEDAUTH. The
@@ -34,7 +34,7 @@
 #   * A published version is immutable. A failed or wrong release needs a HIGHER version;
 #     re-tagging the same version just 403s.
 #   * `package.json` `repository.url` MUST match this GitHub repo exactly or the OIDC publish
-#     fails with ENEEDAUTH. It does today: git+https://github.com/hseshadr/errors.git.
+#     fails with ENEEDAUTH. It does today: git+https://github.com/gainratio/errors.git.
 #   * `--provenance` signs into a PUBLIC transparency log, so this repository must stay public.
 #
 # Every `uses:` is a full 40-char commit SHA with the release in a trailing comment, so

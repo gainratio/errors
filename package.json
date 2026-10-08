@@ -15,13 +15,13 @@
   ],
   "license": "MIT",
   "author": "Harish Seshadri",
-  "homepage": "https://github.com/hseshadr/errors#readme",
+  "homepage": "https://github.com/gainratio/errors#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hseshadr/errors.git"
+    "url": "git+https://github.com/gainratio/errors.git"
   },
   "bugs": {
-    "url": "https://github.com/hseshadr/errors/issues"
+    "url": "https://github.com/gainratio/errors/issues"
   },
   "publishConfig": {
     "access": "public"
