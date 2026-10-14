@@ -1,10 +1,15 @@
-# Weekly, grouped discovery only. Dependabot PRs still require normal review.
+# Monthly, grouped discovery only. Dependabot PRs still require normal review.
+# Minor and patch updates arrive as one PR per ecosystem. Semver-major updates
+# are ignored here on purpose: majors are migrated by hand, in a human PR.
+# A 7-day cooldown lets a bad release get yanked before it reaches this repo.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
     # gainratio/ci (formerly hseshadr/ci) retired its reusable-workflow catalog
     # (7c75ff1); ci-v3.3.0 is the last release that ships its reusable workflows.
     # The secret scan is now an inline job in ci.yml. Dependabot would otherwise
@@ -14,6 +19,9 @@ updates:
     ignore:
       - dependency-name: "hseshadr/ci*"
       - dependency-name: "gainratio/ci*"
+      # Majors are migrated by hand.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       github-actions:
         patterns:
@@ -25,7 +33,13 @@ updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
+    ignore:
+      # Majors are migrated by hand.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-toolchain:
         patterns:

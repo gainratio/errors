@@ -41,6 +41,16 @@ const ARCHITECTURE = fileURLToPath(
 /** Matches `uses: <ref>` / `- uses: <ref>`, stopping before a trailing comment. */
 const USES = /^\s*(?:-\s*)?uses:\s*([^\s#]+)/gm;
 
+/** A whole `uses:` line: the ref, then an optional trailing `# comment`. */
+const USES_LINE = /^\s*(?:-\s*)?uses:\s*([^\s#]+)[ \t]*(#.*)?$/gm;
+
+/** The trailing comment names the release the SHA is, e.g. `# v7.0.1` or `# v6`. */
+const RELEASE_COMMENT = /^# v\d+(?:\.\d+){0,2}\b/;
+
+/** A pinned external ref must say which release its SHA is. */
+const recordsRelease = (ref: string, comment: string | undefined): boolean =>
+  ref.startsWith("./") || RELEASE_COMMENT.test(comment ?? "");
+
 /** owner/repo[/sub/path]@<40 lowercase hex> */
 const PINNED = /^[\w.-]+\/[\w.-]+(?:\/[\w./-]+)?@[0-9a-f]{40}$/;
 
@@ -94,6 +104,19 @@ describe("GitHub Actions supply chain", () => {
       .filter((entry) => !isImmutable(entry.split(": ")[1] ?? ""));
     expect(unpinned).toEqual([]);
   });
+
+  it("names the release of every pinned SHA in a trailing `# vX` comment", () => {
+    // Dependabot rewrites pin and comment together. A SHA with no release
+    // comment cannot be reviewed or bumped. No test here copies a SHA value:
+    // the property (immutable ref + named release) is the contract, so a
+    // Dependabot bump never trips this gate.
+    const unlabelled = readWorkflows().flatMap(({ file, yaml }) =>
+      [...yaml.matchAll(USES_LINE)]
+        .filter((m) => !recordsRelease(m[1] ?? "", m[2]))
+        .map((m) => `${file}: ${m[1]}`),
+    );
+    expect(unlabelled).toEqual([]);
+  });
 });
 
 describe("GitHub Actions token scope", () => {
@@ -112,17 +135,14 @@ describe("GitHub Actions token scope", () => {
 // pinned ci's `ts-publish.yml` and nothing else, so no `gitleaks` check ever
 // reported here and branch protection had nothing to require.
 //
-// CONTRACT CHANGE (2026-10-08): this block used to require ci's reusable
-// secret-scan brick pinned at ci-v3.3.0. ci retired that catalog (7c75ff1), and
-// after the move to the gainratio ORG gitleaks-action refuses to run without a
-// license. The scan is now an inline job: a faithful copy of the ci-v3.3.0
-// brick's job, plus the org's GITLEAKS_LICENSE secret on the action step.
+// CONTRACT CHANGE (2026-10-14): this block used to require gitleaks-action
+// pinned to one commit SHA plus the org's GITLEAKS_LICENSE secret. Dependabot
+// runs never receive secrets, so every Dependabot PR went red on this check.
+// The scan now runs the free gitleaks CLI: a pinned version, its tarball
+// verified against a pinned sha256, no secret and no token.
 //
 // These rules assert the WIRING. That the scan actually CATCHES a secret is
 // proven separately, by planting one and watching the check go red on a PR.
-const GITLEAKS_ACTION_COMMIT = "e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e";
-// biome-ignore lint/suspicious/noTemplateCurlyInString: a literal GitHub Actions expression, not a template.
-const LICENSE_ENV = "GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}";
 
 /** The lines of the step that starts at `- uses: <prefix>`, or "" if absent. */
 function stepOf(yaml: string, prefix: string): string {
@@ -142,14 +162,14 @@ function stepOf(yaml: string, prefix: string): string {
 describe("secret scanning", () => {
   const ciYaml = (): string =>
     readWorkflows().find(({ file }) => file === "ci.yml")?.yaml ?? "";
-  const gitleaksStep = (): string =>
-    stepOf(ciYaml(), "gitleaks/gitleaks-action@");
+  const gitleaksJob = (): string => jobsOf(ciYaml()).get("gitleaks") ?? "";
 
-  it("finds the step it checks (guards against a vacuous pass)", () => {
+  it("finds the job and step it checks (guards against a vacuous pass)", () => {
     expect(
       stepOf("  - uses: a/b@c\n    env:\n      X: 1\n  - run: y", "a/b@"),
     ).toBe("  - uses: a/b@c\n    env:\n      X: 1");
     expect(stepOf("  - run: y", "a/b@")).toBe("");
+    expect(gitleaksJob()).toContain("gitleaks git");
   });
 
   it("reports under the exact check name branch protection requires", () => {
@@ -162,38 +182,39 @@ describe("secret scanning", () => {
     expect(ciYaml()).not.toContain("secret-scan.yml@");
   });
 
-  it("runs gitleaks-action pinned to the ci-v3.3.0 brick's commit SHA", () => {
-    expect(gitleaksStep()).toContain(
-      `- uses: gitleaks/gitleaks-action@${GITLEAKS_ACTION_COMMIT} # v3.0.0`,
+  it("needs no secret, so Dependabot PRs can run it", () => {
+    // A pull_request-triggered workflow that reads a secret is red on every
+    // Dependabot PR, because Dependabot runs receive no secrets.
+    expect(ciYaml()).not.toMatch(/\bsecrets\./);
+    expect(gitleaksJob()).not.toContain("gitleaks/gitleaks-action");
+  });
+
+  it("verifies the pinned gitleaks tarball's sha256 before running it", () => {
+    const job = gitleaksJob();
+    expect(job).toMatch(/^\s+GITLEAKS_VERSION: "\d+\.\d+\.\d+"$/m);
+    expect(job).toMatch(/^\s+GITLEAKS_SHA256: "[0-9a-f]{64}"$/m);
+    expect(job).toContain("sha256sum --check --strict");
+    expect(job.indexOf("sha256sum --check")).toBeLessThan(
+      job.indexOf("gitleaks git"),
     );
   });
 
-  it("hands the action the org license from secrets, never a literal", () => {
-    // gainratio is an organization: without this the action exits before
-    // scanning with "missing gitleaks license".
-    expect(gitleaksStep()).toContain(LICENSE_ENV);
-  });
-
   it("keeps findings in the redacted job log only", () => {
-    const step = gitleaksStep();
-    for (const flag of ["COMMENTS", "SUMMARY", "UPLOAD_ARTIFACT"]) {
-      expect(step).toContain(`GITLEAKS_ENABLE_${flag}: "false"`);
-    }
+    expect(gitleaksJob()).toContain("gitleaks git --redact");
+    expect(gitleaksJob()).not.toContain("upload-artifact");
   });
 
   it("checks out every commit and sweeps full history, not just the event range", () => {
-    // The action alone scans only the commits a push or PR introduced; a push
-    // already on main scans zero commits and passes.
     const ci = ciYaml();
     expect(stepOf(ci, "actions/checkout@")).toMatch(/^\s+fetch-depth: 0$/m);
-    expect(ci).toContain(
+    expect(gitleaksJob()).toContain(
       'gitleaks git --redact --no-banner --log-opts="--all" .',
     );
   });
 
-  it("grants the job only contents and pull-requests read", () => {
-    expect(ciYaml()).toMatch(
-      /name: Secret scan \/ gitleaks\n(?:\s*#.*\n)*\s+permissions:\n\s+contents: read\n\s+pull-requests: read\n/,
+  it("grants the job only contents read", () => {
+    expect(gitleaksJob()).toMatch(
+      /^ {4}permissions:\n {6}contents: read\n {4}\S/m,
     );
   });
 
@@ -226,14 +247,21 @@ describe("dependency security audit", () => {
     expect(workspace).not.toMatch(/^minimumReleaseAgeStrict: false$/m);
   });
 
-  it("discovers npm and GitHub Actions updates every week", () => {
+  it("discovers npm and GitHub Actions updates monthly, majors held out", () => {
     expect(existsSync(DEPENDABOT)).toBe(true);
     const config = readFileSync(DEPENDABOT, "utf8");
     const ecosystems = [
       ...config.matchAll(/package-ecosystem:\s*([^\s]+)/g),
     ].map((match) => match[1]);
     expect(ecosystems).toEqual(["github-actions", "npm"]);
-    expect(config.match(/interval:\s*weekly/g)).toHaveLength(2);
+    expect(config.match(/interval:\s*monthly/g)).toHaveLength(2);
+    expect(config.match(/cooldown:\n\s+default-days: 7\n/g)).toHaveLength(2);
+    // Majors are migrated by hand, never by a Dependabot PR.
+    expect(
+      config.match(
+        /- dependency-name: "\*"\n\s+update-types: \["version-update:semver-major"\]/g,
+      ),
+    ).toHaveLength(2);
   });
 
   it.each(["gainratio", "hseshadr"])(
@@ -316,6 +344,37 @@ describe("the pin rule itself", () => {
     ];
     expect(refs.filter((r) => !isImmutable(r))).toEqual([
       "pnpm/action-setup@v6",
+    ]);
+  });
+
+  it.each([
+    ["a full version", "# v7.0.1"],
+    ["a major only", "# v6"],
+    ["a version with a note after it", "# v5.0.0 (release-please)"],
+  ])("accepts a release comment with %s", (_label, comment) => {
+    expect(recordsRelease(`actions/checkout@${"a".repeat(40)}`, comment)).toBe(
+      true,
+    );
+  });
+
+  it.each([
+    ["no comment", undefined],
+    ["a comment with no version", "# pinned"],
+    ["a bare version with no v", "# 7.0.1"],
+  ])("rejects a pinned SHA with %s", (_label, comment) => {
+    expect(recordsRelease(`actions/checkout@${"a".repeat(40)}`, comment)).toBe(
+      false,
+    );
+  });
+
+  it("reads the trailing comment off a real uses: line", () => {
+    const yaml = [
+      "      - uses: actions/checkout@abc # v7.0.1",
+      "        uses: pnpm/action-setup@def",
+    ].join("\n");
+    expect([...yaml.matchAll(USES_LINE)].map((m) => [m[1], m[2]])).toEqual([
+      ["actions/checkout@abc", "# v7.0.1"],
+      ["pnpm/action-setup@def", undefined],
     ]);
   });
 
@@ -714,5 +773,27 @@ describe("the release-pipeline helpers themselves", () => {
     for (const fixed of [onArg, onGlob]) {
       expect(isLocalPathSpec(effectivePublishSpec(fixed) ?? "")).toBe(true);
     }
+  });
+});
+
+// biome.json used to name a hosted schema URL with a version literal
+// (2.5.3) that drifted from the installed CLI (2.5.15) on every Dependabot
+// bump. Pointing at the schema the installed package ships means the editor
+// schema IS the CLI's schema, with nothing to re-pin.
+describe("biome config schema", () => {
+  const BIOME_CONFIG = fileURLToPath(new URL("../biome.json", import.meta.url));
+
+  it("points at the schema file the installed biome package ships", () => {
+    const schema: unknown = JSON.parse(
+      readFileSync(BIOME_CONFIG, "utf8"),
+    ).$schema;
+    expect(schema).toBe(
+      "./node_modules/@biomejs/biome/configuration_schema.json",
+    );
+    expect(
+      existsSync(
+        fileURLToPath(new URL(`../${String(schema)}`, import.meta.url)),
+      ),
+    ).toBe(true);
   });
 });
