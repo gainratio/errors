@@ -1,0 +1,52 @@
+{
+  "errors": {
+    "http": {
+      "unauthorized": "No tienes permiso para hacer eso. Revisa tus credenciales e inténtalo de nuevo.",
+      "not_found": "El servidor no encontró lo que pediste.",
+      "rate_limited": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+      "server_error": "Hubo un error en el servidor. Vuelve a intentarlo en un momento."
+    },
+    "net": {
+      "unreachable": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
+    },
+    "request": {
+      "timeout": "La solicitud tardó demasiado. Inténtalo de nuevo.",
+      "cancelled": "Se canceló la solicitud."
+    },
+    "config": {
+      "missing": "Falta un ajuste obligatorio: {{field}}.",
+      "invalid": "Hay un ajuste no válido: {{field}}."
+    },
+    "internal": {
+      "unknown": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "ai": {
+      "config": {
+        "no_key": "No hay ninguna clave de proveedor de IA configurada. Agrega una en los ajustes para activar las funciones de IA opcionales."
+      },
+      "provider": {
+        "unauthorized": "Tu proveedor de IA rechazó la clave. Revísala en los ajustes.",
+        "out_of_credits": "Tu cuenta del proveedor se quedó sin créditos. Agrega créditos e inténtalo de nuevo.",
+        "rate_limited": "El proveedor de IA está limitando las solicitudes. Espera un momento e inténtalo de nuevo.",
+        "server_error": "Hubo un error en el servidor del proveedor de IA. Vuelve a intentarlo en un momento."
+      },
+      "model": {
+        "unavailable": "El modelo elegido no está disponible. Elige otro."
+      },
+      "request": {
+        "timeout": "La solicitud a la IA tardó demasiado. Inténtalo de nuevo.",
+        "cancelled": "Se canceló la solicitud a la IA."
+      },
+      "privacy": {
+        "violation": "La solicitud se bloqueó antes de salir de este dispositivo para proteger tus datos privados."
+      }
+    },
+    "bundle": {
+      "download_failed": "No se pudo descargar el paquete de datos. Revisa tu conexión e inténtalo de nuevo.",
+      "integrity_failed": "Un archivo descargado no pasó la comprobación de integridad. Vuelve a descargarlo.",
+      "quota_exceeded": "No hay suficiente espacio libre para cargar los datos en este dispositivo. Libera espacio e inténtalo de nuevo, o usa un navegador de escritorio.",
+      "device_unsupported": "Este navegador o dispositivo no es compatible con esta aplicación. Prueba con un navegador de escritorio reciente.",
+      "timeout": "La carga de los datos tardó demasiado. Inténtalo de nuevo o prueba en un navegador de escritorio."
+    }
+  }
+}

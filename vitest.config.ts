@@ -2,14 +2,20 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  // The README's example imports the package by name. Point that name at src/
-  // so test/readme.contract.test.ts runs the example against this commit.
+  // The README's examples import the package by name. Point that name at src/
+  // (and its translation files at locales/) so test/readme.contract.test.ts
+  // runs the examples against this commit.
   resolve: {
-    alias: {
-      "@gainratio/errors": fileURLToPath(
-        new URL("src/index.ts", import.meta.url),
-      ),
-    },
+    alias: [
+      {
+        find: /^@gainratio\/errors\/locales\/(.+)$/,
+        replacement: fileURLToPath(new URL("locales/$1", import.meta.url)),
+      },
+      {
+        find: /^@gainratio\/errors$/,
+        replacement: fileURLToPath(new URL("src/index.ts", import.meta.url)),
+      },
+    ],
   },
   test: {
     environment: "node",

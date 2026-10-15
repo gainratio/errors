@@ -15,7 +15,7 @@ import type {
   ProblemOptions,
   Registry,
   RegistryOptions,
-  TFunction,
+  Translator,
 } from "./types.js";
 
 /** The last-resort code a registry uses when it configures no other. */
@@ -298,7 +298,7 @@ function createRegistry<C extends Catalog>(
     return fallbackCode;
   }
 
-  function describe(code: ErrorCode, params?: Params, t?: TFunction): string {
+  function describe(code: ErrorCode, params?: Params, t?: Translator): string {
     const entry = entryOf(code);
     const values: Record<string, ParamValue> = { ...(params ?? {}) };
     const key = own(entry, "i18nKey") ?? `errors.${code}`;

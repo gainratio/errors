@@ -75,6 +75,53 @@ errors.describe("http.not_found", {}, t); // "That was not found on the server."
 
 Set `i18nKey` on a catalog entry to use a different translation key.
 
+## Show errors in the user's language
+
+The package ships Spanish (`es`) and Brazilian Portuguese (`pt`) for all 24 built-in
+codes in `corePack`, `aiPack`, `bundlePack`, and `starterPack`. They are plain
+i18next JSON, nested the way i18next reads keys by default (`errors` → `http` →
+`rate_limited`), with i18next's `{{name}}` placeholders:
+
+```ts
+import es from "@gainratio/errors/locales/es.json" with { type: "json" };
+import pt from "@gainratio/errors/locales/pt.json" with { type: "json" };
+
+i18next.addResourceBundle("es", "translation", es, true, false);
+i18next.addResourceBundle("pt", "translation", pt, true, false);
+
+errors.describe("http.rate_limited", {}, i18next.t);
+// es: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo."
+```
+
+- **Which namespace.** `describe` asks for `errors.<code>` in your default
+  namespace. If your error strings live in another namespace, load the files
+  there and set `i18nKey: "myns:errors.http.rate_limited"` on the entry, or wrap
+  `t` so it adds the namespace.
+- **Flat keys.** If you set `keySeparator: false`, i18next wants flat keys such
+  as `"errors.http.rate_limited"`. Flatten the files once when you load them.
+- **Turn off HTML escaping.** Set `interpolation: { escapeValue: false }`.
+  `describe` returns plain text, like its English, and you escape it where you
+  render it. With i18next's default, values come back HTML-escaped (`/` becomes
+  `&#x2F;`), in the screen text and in a Problem Details `title`.
+- **Which language.** i18next picks it, from `lng` and `fallbackLng`. A regional
+  language like `pt-BR` reads the `pt` file, and a language with no file falls
+  back to English. The package itself never picks a language. The `pt` file is
+  Brazilian Portuguese, so `pt-PT` readers get Brazilian wording.
+- **No English file.** English comes from each entry's `en`, so a registry built
+  from `starterPack` keeps its own English wording.
+- **Your own codes.** Add `errors.<code>` keys to your translation files, or set
+  `i18nKey` to reuse a key you already have. A key you have not translated yet
+  shows the English sentence, never the raw key.
+
+A server that answers in the caller's language passes the translated sentence as
+the `title`. The `type` and every param stay the same, so clients can still
+match on the code:
+
+```ts
+const t = i18next.getFixedT(userLanguage); // e.g. "pt-BR", from your own negotiation
+errors.toProblemDetails(code, params, { title: errors.describe(code, params, t) });
+```
+
 ## Send it from an API (RFC 9457)
 
 ```ts
@@ -204,8 +251,10 @@ Everything else is your catalog.
 | `DuplicateCodeError`                           | class | Thrown when a code is defined in two fragments                      |
 | `InvalidCatalogEntryError`                     | class | Thrown when an entry has the wrong shape, e.g. `httpStatus: 408` instead of `[408]` |
 | `errorNameOf` / `errorTextOf` / `httpStatusOf` | fn    | Helpers for writing your own `match` rules                          |
+| `@gainratio/errors/locales/es.json`, `pt.json` | data  | Spanish and Portuguese for every built-in code, as i18next JSON     |
 
-`Registry` methods: `classify(raw)`, `describe(code, params?, t?)`,
+`Registry` methods: `classify(raw)`, `describe(code, params?, t?)` (`t` is any
+`Translator`, including i18next's `t` as-is),
 `toProblemDetails(code, params?, opts?)`, `create(code, params?)`, plus
 `codes`, `has`, and `get`.
 
@@ -214,4 +263,4 @@ Everything else is your catalog.
 
 Types: `Catalog`, `CatalogEntry`, `Category`, `KnownCategory`, `ErrorCode`,
 `MatchRule`, `Params`, `ParamsFor`, `ParamValue`, `ProblemDetails`,
-`ProblemOptions`, `Registry`, `RegistryOptions`, `TFunction`.
+`ProblemOptions`, `Registry`, `RegistryOptions`, `TFunction`, `Translator`.

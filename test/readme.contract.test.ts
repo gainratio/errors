@@ -25,6 +25,7 @@ const GETTING_STARTED = "docs/GETTING_STARTED.md";
 /** The sections, in the order a reader meets them. */
 const SECTIONS = [
   "## Try it",
+  "## Show errors in the user's language",
   "## How it works",
   "## What it does not do",
   "## When to use something else",
@@ -175,27 +176,43 @@ describe("README contract", () => {
   });
 });
 
-describe("README 'Try it' shows real code and its real output", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+/** Each README section that quotes a runnable example and pastes its output. */
+const RUNNABLE: ReadonlyArray<readonly [string, string]> = [
+  ["## Try it", "examples/try.mjs"],
+  ["## Show errors in the user's language", "examples/languages.mjs"],
+];
 
-  it("quotes examples/try.mjs exactly", () => {
-    const code = fenced(section("## Try it"), "js");
-    expect(code).toBe(readFileSync(join(ROOT, "examples/try.mjs"), "utf8"));
-  });
-
-  it("pastes exactly what examples/try.mjs prints", async () => {
-    const printed: string[] = [];
-    vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
-      printed.push(args.join(" "));
+describe.each(RUNNABLE)(
+  "README '%s' shows real code and its real output",
+  (heading, file) => {
+    afterEach(() => {
+      vi.restoreAllMocks();
     });
-    // vitest.config.ts aliases "@gainratio/errors" to src/, so this runs the
-    // example file against the code in this commit.
-    const example = pathToFileURL(join(ROOT, "examples/try.mjs")).href;
-    await import(/* @vite-ignore */ example);
-    expect(fenced(section("## Try it"), "text")).toBe(
-      `${printed.join("\n")}\n`,
-    );
+
+    it(`quotes ${file} exactly`, () => {
+      const code = fenced(section(heading), "js");
+      expect(code).toBe(readFileSync(join(ROOT, file), "utf8"));
+    });
+
+    it(`pastes exactly what ${file} prints`, async () => {
+      const printed: string[] = [];
+      vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
+        printed.push(args.join(" "));
+      });
+      // vitest.config.ts aliases "@gainratio/errors" to src/ (and its locales/
+      // files to this repo's locales/), so this runs the example against the
+      // code in this commit.
+      const example = pathToFileURL(join(ROOT, file)).href;
+      await import(/* @vite-ignore */ example);
+      expect(fenced(section(heading), "text")).toBe(`${printed.join("\n")}\n`);
+    });
+  },
+);
+
+describe("README says up front that messages come in the user's language", () => {
+  it("mentions languages and the shipped translations before 'Try it'", () => {
+    const intro = README.slice(0, at("## Try it\n"));
+    expect(intro).toMatch(/user's\s+language/);
+    expect(intro).toMatch(/Spanish\s+and\s+Portuguese/);
   });
 });
