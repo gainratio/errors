@@ -304,7 +304,12 @@ function createRegistry<C extends Catalog>(
     const key = own(entry, "i18nKey") ?? `errors.${code}`;
     if (t) {
       const localized = t(key, values);
-      if (localized !== key) return localized;
+      // i18next answers a miss with the key itself, and for a namespaced key
+      // ("errors:device.unsupported") with the key WITHOUT its namespace. Both
+      // are misses: the English below is better than a raw key on screen. A
+      // translation whose text is exactly that bare key counts as a miss too.
+      const bare = key.slice(key.indexOf(":") + 1);
+      if (localized !== key && localized !== bare) return localized;
     }
     const template = own(entry, "en");
     return template === undefined ? code : interpolate(template, values);

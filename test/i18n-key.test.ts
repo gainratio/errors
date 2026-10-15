@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import { describe, expect, it, vi } from "vitest";
 import { defineErrors, type TFunction } from "../src/index.js";
 
@@ -59,5 +60,47 @@ describe("describe — i18nKey overrides the default `errors.<code>` key", () =>
   it("carries the i18nKey-resolved title into toProblemDetails", () => {
     const problem = registry.toProblemDetails("app.custom_key", { field: "y" });
     expect(problem.title).toBe("Default English for y.");
+  });
+});
+
+describe("describe — a namespaced i18nKey that real i18next is missing", () => {
+  // i18next answers a missing "ns:key" with "key", WITHOUT the namespace. The
+  // miss check compared against "ns:key" only, so the bare key reached the
+  // screen ("device.unsupported") instead of the English fallback.
+  it("falls back to the English, never the bare key", async () => {
+    const i18n = i18next.createInstance();
+    await i18n.init({
+      lng: "es",
+      ns: ["common", "errors"],
+      defaultNS: "common",
+      resources: { es: { common: {}, errors: {} } },
+    });
+    expect(registry.describe("app.custom_key", { field: "x" }, i18n.t)).toBe(
+      "Default English for x.",
+    );
+  });
+
+  it("still uses the translation when the namespaced key exists", async () => {
+    const i18n = i18next.createInstance();
+    await i18n.init({
+      lng: "es",
+      ns: ["errors"],
+      resources: {
+        es: {
+          errors: { device: { unsupported: "No compatible: {{field}}." } },
+        },
+      },
+      interpolation: { escapeValue: false },
+    });
+    expect(registry.describe("app.custom_key", { field: "x" }, i18n.t)).toBe(
+      "No compatible: x.",
+    );
+  });
+
+  it("treats a translation that merely equals the bare key text as a miss too", () => {
+    const t: TFunction = (key) => key.slice(key.indexOf(":") + 1);
+    expect(registry.describe("app.custom_key", { field: "x" }, t)).toBe(
+      "Default English for x.",
+    );
   });
 });
