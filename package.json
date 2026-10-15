@@ -32,7 +32,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "locales"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -41,7 +42,8 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./locales/*.json": "./locales/*.json"
   },
   "sideEffects": false,
   "scripts": {
@@ -58,6 +60,7 @@
     "@biomejs/biome": "^2.4.16",
     "@types/node": "^26.1.1",
     "@vitest/coverage-v8": "^5.0.1",
+    "i18next": "^26.4.5",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"
   }

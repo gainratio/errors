@@ -31,7 +31,10 @@ It is thin glue over two existing standards, not a new framework:
 - **[i18next](https://www.i18next.com/)** owns the human descriptions. You hand
   `describe()` your own `t` function. This package never imports i18next, so
   i18next is not a dependency of any kind. Anything shaped like
-  `t(key, params)` works, including a five-line stand-in.
+  `t(key, params)` works, including a five-line stand-in. The package ships
+  Spanish and Portuguese for its built-in codes as i18next JSON files
+  (`locales/es.json`, `locales/pt.json`). They are data, not code: you load
+  them into your own i18next, and i18next picks the language.
 - **[RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457)** owns
   the wire shape.
 
@@ -45,6 +48,7 @@ It is thin glue over two existing standards, not a new framework:
 | `src/canonical-error.ts` | `CanonicalError`, an `Error` subclass carrying `{ code, params, category }`. |
 | `src/types.ts` | All public types (`Catalog`, `CatalogEntry`, `Category`, `ProblemDetails`, ...). |
 | `src/index.ts` | The public export list. |
+| `locales/es.json`, `locales/pt.json` | Spanish and Portuguese for every built-in code, exported as `@gainratio/errors/locales/<lang>.json`. |
 
 ## Design choices
 
@@ -237,15 +241,17 @@ vulnerability.
 | Claim | Backed by |
 | --- | --- |
 | Every line and branch of the library is exercised | `pnpm test`, with coverage thresholds pinned at 100% statements / branches / functions / lines in [`vitest.config.ts`](../vitest.config.ts) |
-| The README's example and its pasted output are real | [`test/readme.contract.test.ts`](../test/readme.contract.test.ts) runs [`examples/try.mjs`](../examples/try.mjs) against `src/` and compares the output to the README byte for byte |
+| The README's example and its pasted output are real | [`test/readme.contract.test.ts`](../test/readme.contract.test.ts) runs [`examples/try.mjs`](../examples/try.mjs) and [`examples/languages.mjs`](../examples/languages.mjs) against `src/` and compares the output to the README byte for byte |
+| Every built-in code has Spanish and Portuguese, with the same placeholders as the English, and they load in a real i18next | [`test/locales.test.ts`](../test/locales.test.ts) |
 | The README's pack table matches the packs | [`test/pack-code-sets.test.ts`](../test/pack-code-sets.test.ts) |
 | `starterPack` stays byte-identical for the repos that vendor it | [`test/vendored-consumer-compat.test.ts`](../test/vendored-consumer-compat.test.ts), [`test/starter-pack.test.ts`](../test/starter-pack.test.ts) |
 | Hostile params and a polluted `Object.prototype` cannot shape the output | [`test/prototype-pollution.test.ts`](../test/prototype-pollution.test.ts), [`test/prototype-keys.test.ts`](../test/prototype-keys.test.ts), [`test/problem-details.test.ts`](../test/problem-details.test.ts) |
 | CI actions are pinned to full commit SHAs | [`test/workflow-security.test.ts`](../test/workflow-security.test.ts) |
 
 The tests do not prove that your own catalog's `match` predicates are correct,
-that your translations are complete (a missing key falls back to the catalog's
-English), or that the package behaves in a particular browser. CI runs on Node
+that your translations of your own codes are complete (a missing key falls back
+to the catalog's English), or that the shipped Spanish and Portuguese read well to a
+native speaker (a test checks their keys and placeholders, not their wording), or that the package behaves in a particular browser. CI runs on Node
 only.
 
 ## Status and roadmap

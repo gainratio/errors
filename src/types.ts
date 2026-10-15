@@ -54,6 +54,17 @@ export type TFunction = (
   params?: Record<string, ParamValue>,
 ) => string;
 
+/**
+ * What `describe` accepts as its third argument: any `t(key, params)`. It is
+ * wider than {@link TFunction} (every `TFunction` fits), so i18next's own `t`
+ * and `getFixedT(lng)` can be passed as-is, without a wrapper or a cast, even
+ * under `exactOptionalPropertyTypes`. `describe` always passes `params`.
+ */
+export type Translator = (
+  key: string,
+  params: Record<string, ParamValue>,
+) => string;
+
 /** A predicate that inspects a raw failure and claims it for a code. */
 export type MatchRule = (raw: unknown) => boolean;
 
@@ -173,9 +184,9 @@ export interface Registry<C extends Catalog = Catalog> {
   describe<K extends keyof C & string>(
     code: K,
     params?: ParamsFor<C, K>,
-    t?: TFunction,
+    t?: Translator,
   ): string;
-  describe(code: ErrorCode, params?: Params, t?: TFunction): string;
+  describe(code: ErrorCode, params?: Params, t?: Translator): string;
 
   /**
    * Serialize a code to the RFC 9457 Problem Details shape. Params become

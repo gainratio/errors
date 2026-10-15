@@ -39,4 +39,5 @@ export type {
   Registry,
   RegistryOptions,
   TFunction,
+  Translator,
 } from "./types.js";

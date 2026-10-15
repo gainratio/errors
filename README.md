@@ -18,6 +18,9 @@ This package gives you one list of error codes for your whole app. You hand it
 whatever failed (an HTTP status, a thrown error, a network drop) and it gives
 back one code such as `ai.provider.out_of_credits`, one sentence a person can
 read, and the same error as a standard JSON body your API can send.
+The code is the same in every language. The sentence comes in the user's
+language through your own i18next, and Spanish and Portuguese translations of
+every built-in code ship with the package.
 It does not log, retry, or report errors. Your app still decides what to do with them.
 
 **Technical docs:** [Architecture](docs/ARCHITECTURE.md) · [API guide](docs/API.md) · [Getting started for developers](docs/GETTING_STARTED.md)
@@ -89,9 +92,79 @@ The last two lines are an error you can `throw`. Its `.message` is the code
 searchable text. To show the sentence, call
 `errors.describe(err.code, err.params)`.
 
-To show the sentence in another language, pass your own translation function
-(for example i18next's `t`) as the third argument to `describe`. The
-[API guide](docs/API.md) shows how, plus how to add your own codes.
+To show the sentence in another language, see the next section.
+
+## Show errors in the user's language
+
+`describe` takes your app's translation function as its third argument. It asks
+for the key `errors.<code>` (for example `errors.http.rate_limited`). If your
+translations have that key, the user sees it. If not, they see the English
+sentence from your list of codes, never a raw key. The code itself never
+changes, so your logs and API stay the same in every language.
+
+The package ships Spanish and Portuguese for all 24 built-in codes, as plain
+i18next JSON files. Load them into the i18next you already use:
+
+```bash
+npm install @gainratio/errors i18next
+```
+
+Save this as `languages.mjs` (it is also
+[`examples/languages.mjs`](examples/languages.mjs)) and run `node languages.mjs`:
+
+```js
+import { corePack, defineErrorsWith } from "@gainratio/errors";
+import es from "@gainratio/errors/locales/es.json" with { type: "json" };
+import pt from "@gainratio/errors/locales/pt.json" with { type: "json" };
+import i18next from "i18next";
+
+const errors = defineErrorsWith({}, corePack);
+
+// Load the Spanish and Portuguese files that ship with the package into your
+// own i18next. English needs no file: it comes from the list of codes.
+await i18next.init({
+  fallbackLng: "en",
+  resources: { es: { translation: es }, pt: { translation: pt } },
+});
+
+const code = errors.classify({ status: 429 }); // always "http.rate_limited"
+
+for (const language of ["en", "es", "pt-BR", "fr"]) {
+  const t = i18next.getFixedT(language);
+  console.log(language.padEnd(6), errors.describe(code, {}, t));
+}
+
+// Values fill in the same way in every language.
+const t = i18next.getFixedT("es");
+console.log(errors.describe("config.missing", { field: "API_KEY" }, t));
+
+// On the wire, only the title changes. The code and type never do.
+const body = errors.toProblemDetails(
+  code,
+  {},
+  { title: errors.describe(code, {}, t) },
+);
+console.log(JSON.stringify(body));
+```
+
+The real output:
+
+```text
+en     Too many requests. Wait a moment and try again.
+es     Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.
+pt-BR  Muitas solicitações. Aguarde um momento e tente de novo.
+fr     Too many requests. Wait a moment and try again.
+Falta un ajuste obligatorio: API_KEY.
+{"type":"http.rate_limited","title":"Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.","status":429}
+```
+
+i18next does the language matching. `pt-BR` gets the Portuguese file, and a
+language with no file, like `fr`, gets English. The package never picks a
+language on its own and never imports i18next. Any function shaped like
+`t(key, params)` works in its place. For your own codes, add `errors.<code>`
+keys to your own translation files, or set `i18nKey` on the entry to reuse a key
+you already have. The [API guide](docs/API.md#show-errors-in-the-users-language)
+has the details.
 
 ## How it works
 
@@ -184,8 +257,9 @@ version to use, a map of the code, and a walkthrough of a first change.
   to a passing build and your first change.
 - [Interactive architecture map](docs/architecture/index.html): the same design
   as a clickable diagram.
-- [Examples](examples/): `try.mjs` (above), `out-of-credits.mjs`, and
-  `quickstart.mjs`, which adds your own code and a Spanish translation.
+- [Examples](examples/): `try.mjs` and `languages.mjs` (above),
+  `out-of-credits.mjs`, and `quickstart.mjs`, which adds your own code and a
+  Spanish translation.
 - [SECURITY.md](SECURITY.md): the threat model and how to report a problem.
 - [CONTRIBUTING.md](CONTRIBUTING.md): the rules for changes.
 - [CHANGELOG](CHANGELOG.md): what changed in each version.
