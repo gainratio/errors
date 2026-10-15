@@ -74,7 +74,10 @@ export interface CatalogEntry {
   readonly category: Category;
   /** The interpolation params this code's description may use. */
   readonly params?: readonly string[];
-  /** Override the i18n key (defaults to `errors.<code>`). */
+  /**
+   * Override the i18n key (defaults to `errors.<code>`). A namespaced key such
+   * as `"errors:device.unsupported"` assumes i18next's default `:` separator.
+   */
   readonly i18nKey?: string;
   /** HTTP statuses that `classify` maps to this code. */
   readonly httpStatus?: readonly number[];
