@@ -9,6 +9,13 @@ From 0.2.2 on, release-please writes each entry from the conventional-commit
 messages merged since the last release (`feat:` under Added, `fix:` under
 Fixed). Entries up to 0.2.1 were written by hand.
 
+## [0.3.1](https://github.com/gainratio/errors/compare/v0.3.0...v0.3.1) (2026-10-15)
+
+
+### Fixed
+
+* a missing namespaced i18nKey falls back to English, not the bare key ([#46](https://github.com/gainratio/errors/issues/46)) ([c0e7dab](https://github.com/gainratio/errors/commit/c0e7dabcff933a1fac0dc14e10f86c158dfe51b8))
+
 ## [0.3.0](https://github.com/gainratio/errors/compare/v0.2.1...v0.3.0) (2026-10-15)
 
 

@@ -258,7 +258,7 @@ only.
 ## Status and roadmap
 
 Shipped: the catalog, `classify`, `describe`, `toProblemDetails`, `create`,
-`CanonicalError`, and the four packs, in v0.3.0 on npm (see the <!-- x-release-please-version -->
+`CanonicalError`, and the four packs, in v0.3.1 on npm (see the <!-- x-release-please-version -->
 [CHANGELOG](../CHANGELOG.md)).
 
 Planned: nothing is announced. No roadmap feature is implied by the interfaces
