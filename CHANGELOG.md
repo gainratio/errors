@@ -9,6 +9,13 @@ From 0.2.2 on, release-please writes each entry from the conventional-commit
 messages merged since the last release (`feat:` under Added, `fix:` under
 Fixed). Entries up to 0.2.1 were written by hand.
 
+## [0.3.0](https://github.com/gainratio/errors/compare/v0.2.1...v0.3.0) (2026-10-15)
+
+
+### Added
+
+* ship Spanish and Portuguese for every built-in code, and accept i18next's t as-is ([#44](https://github.com/gainratio/errors/issues/44)) ([df35d55](https://github.com/gainratio/errors/commit/df35d55ef7eccb8c07738844fb940c6fd34a41b9))
+
 ## [0.2.1] - 2026-10-01
 
 ### Changed
