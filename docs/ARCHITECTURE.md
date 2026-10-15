@@ -32,7 +32,7 @@ It is thin glue over two existing standards, not a new framework:
   `describe()` your own `t` function. This package never imports i18next, so
   i18next is not a dependency of any kind. Anything shaped like
   `t(key, params)` works, including a five-line stand-in. The package ships
-  Spanish and Portuguese for its built-in codes as i18next JSON files
+  Spanish and Brazilian Portuguese for its built-in codes as i18next JSON files
   (`locales/es.json`, `locales/pt.json`). They are data, not code: you load
   them into your own i18next, and i18next picks the language.
 - **[RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457)** owns
@@ -249,9 +249,10 @@ vulnerability.
 | CI actions are pinned to full commit SHAs | [`test/workflow-security.test.ts`](../test/workflow-security.test.ts) |
 
 The tests do not prove that your own catalog's `match` predicates are correct,
-that your translations of your own codes are complete (a missing key falls back
-to the catalog's English), or that the shipped Spanish and Portuguese read well to a
-native speaker (a test checks their keys and placeholders, not their wording), or that the package behaves in a particular browser. CI runs on Node
+that your translations of your own codes are complete (a missing key falls
+back to the catalog's English), or that the shipped Spanish and Portuguese read
+well to a native speaker (a test checks their keys and placeholders, not their
+wording), or that the package behaves in a particular browser. CI runs on Node
 only.
 
 ## Status and roadmap

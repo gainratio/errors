@@ -113,6 +113,7 @@ describe("the shipped translations in a real i18next", () => {
     instance = i18next.createInstance();
     await instance.init({
       fallbackLng: "en",
+      interpolation: { escapeValue: false },
       resources: {
         es: { translation: load("es") },
         pt: { translation: load("pt") },
@@ -144,6 +145,23 @@ describe("the shipped translations in a real i18next", () => {
     const legacy: TFunction = (key) =>
       key === "errors.request.cancelled" ? "x" : key;
     expect(errors.describe("request.cancelled", {}, legacy)).toBe("x");
+  });
+
+  it("returns values as plain text, like the English, once escapeValue is off", async () => {
+    // describe() returns plain text and the app escapes where it renders. The
+    // docs tell you to turn i18next's HTML escaping off; this pins both halves.
+    const value = { field: "a/b <c>" };
+    expect(errors.describe("config.missing", value)).toBe(
+      "A required setting is missing: a/b <c>.",
+    );
+    expect(errors.describe("config.missing", value, tFor("es"))).toBe(
+      "Falta un ajuste obligatorio: a/b <c>.",
+    );
+    const escaping = i18next.createInstance();
+    await escaping.init({ resources: { es: { translation: load("es") } } });
+    expect(
+      errors.describe("config.missing", value, escaping.getFixedT("es")),
+    ).toBe("Falta un ajuste obligatorio: a&#x2F;b &lt;c&gt;.");
   });
 
   it("fills placeholders: config.missing names the setting", () => {

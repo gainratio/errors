@@ -88,7 +88,8 @@ the same settings.
 | `src/types.ts` | All public types. |
 | `src/index.ts` | The public export list. A new export must be added here. |
 | `test/` | One Vitest file per behaviour. `readme.contract.test.ts` checks the README, including that its example output is real. |
-| `examples/` | Runnable scripts. `try.mjs` is the README example. |
+| `examples/` | Runnable scripts. `try.mjs` and `languages.mjs` are the README examples. |
+| `locales/` | Spanish and Portuguese for the built-in codes (data, shipped in the package). |
 | `docs/` | [Architecture](ARCHITECTURE.md), the [API guide](API.md), this guide, and the interactive architecture map. |
 | `.github/workflows/` | `ci.yml` (runs `pnpm gate`), `publish.yml` (npm release with provenance), `release-please.yml` (keeps the release PR open, starts `publish.yml` when it merges), `security-audit.yml` (weekly). |
 

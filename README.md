@@ -102,8 +102,9 @@ translations have that key, the user sees it. If not, they see the English
 sentence from your list of codes, never a raw key. The code itself never
 changes, so your logs and API stay the same in every language.
 
-The package ships Spanish and Portuguese for all 24 built-in codes, as plain
-i18next JSON files. Load them into the i18next you already use:
+The package ships Spanish (`es`) and Brazilian Portuguese (`pt`) for all 24
+built-in codes, as plain i18next JSON files. Load them into the i18next you
+already use:
 
 ```bash
 npm install @gainratio/errors i18next
@@ -124,6 +125,9 @@ const errors = defineErrorsWith({}, corePack);
 // own i18next. English needs no file: it comes from the list of codes.
 await i18next.init({
   fallbackLng: "en",
+  // describe() returns plain text, like its English. Escape it where you
+  // render it, not here, or "/" comes back as "&#x2F;".
+  interpolation: { escapeValue: false },
   resources: { es: { translation: es }, pt: { translation: pt } },
 });
 
@@ -136,7 +140,9 @@ for (const language of ["en", "es", "pt-BR", "fr"]) {
 
 // Values fill in the same way in every language.
 const t = i18next.getFixedT("es");
-console.log(errors.describe("config.missing", { field: "API_KEY" }, t));
+console.log(
+  errors.describe("config.missing", { field: "Settings / AI key" }, t),
+);
 
 // On the wire, only the title changes. The code and type never do.
 const body = errors.toProblemDetails(
@@ -154,12 +160,15 @@ en     Too many requests. Wait a moment and try again.
 es     Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.
 pt-BR  Muitas solicitações. Aguarde um momento e tente de novo.
 fr     Too many requests. Wait a moment and try again.
-Falta un ajuste obligatorio: API_KEY.
+Falta un ajuste obligatorio: Settings / AI key.
 {"type":"http.rate_limited","title":"Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.","status":429}
 ```
 
-i18next does the language matching. `pt-BR` gets the Portuguese file, and a
-language with no file, like `fr`, gets English. The package never picks a
+i18next does the language matching. `pt-BR` (and `pt-PT`) get the Portuguese
+file, and a language with no file, like `fr`, gets English. Keep
+`escapeValue: false`: `describe` returns plain text, the same as its English,
+and you escape it where you render it. With i18next's default, a value like
+`Settings / AI key` comes back as `Settings &#x2F; AI key`. The package never picks a
 language on its own and never imports i18next. Any function shaped like
 `t(key, params)` works in its place. For your own codes, add `errors.<code>`
 keys to your own translation files, or set `i18nKey` on the entry to reuse a key

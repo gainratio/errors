@@ -4,7 +4,7 @@
       "unauthorized": "Você não tem permissão para fazer isso. Confira suas credenciais e tente de novo.",
       "not_found": "O servidor não encontrou o que você pediu.",
       "rate_limited": "Muitas solicitações. Aguarde um momento e tente de novo.",
-      "server_error": "O servidor teve um erro. Tente de novo daqui a pouco."
+      "server_error": "Ocorreu um erro no servidor. Tente de novo daqui a pouco."
     },
     "net": {
       "unreachable": "Não foi possível conectar ao servidor. Verifique sua conexão e tente de novo."
@@ -15,7 +15,7 @@
     },
     "config": {
       "missing": "Falta uma configuração obrigatória: {{field}}.",
-      "invalid": "Uma configuração não é válida: {{field}}."
+      "invalid": "Configuração inválida: {{field}}."
     },
     "internal": {
       "unknown": "Algo deu errado. Tente de novo."
@@ -25,10 +25,10 @@
         "no_key": "Nenhuma chave de provedor de IA está configurada. Adicione uma nas configurações para ativar os recursos opcionais de IA."
       },
       "provider": {
-        "unauthorized": "Seu provedor de IA recusou a chave. Confira a chave nas configurações.",
+        "unauthorized": "Seu provedor de IA recusou a chave. Verifique-a nas configurações.",
         "out_of_credits": "Sua conta no provedor ficou sem créditos. Adicione créditos e tente de novo.",
         "rate_limited": "O provedor de IA está limitando as solicitações. Aguarde um momento e tente de novo.",
-        "server_error": "O provedor de IA teve um erro no servidor. Tente de novo daqui a pouco."
+        "server_error": "Ocorreu um erro no servidor do provedor de IA. Tente de novo daqui a pouco."
       },
       "model": {
         "unavailable": "O modelo escolhido não está disponível. Escolha outro."
@@ -43,9 +43,9 @@
     },
     "bundle": {
       "download_failed": "Não foi possível baixar o pacote de dados. Verifique sua conexão e tente de novo.",
-      "integrity_failed": "Um arquivo baixado não passou na verificação de integridade. Tente de novo para baixá-lo outra vez.",
+      "integrity_failed": "Um arquivo baixado não passou na verificação de integridade. Baixe-o novamente.",
       "quota_exceeded": "Não há espaço livre suficiente para carregar os dados neste dispositivo. Libere espaço e tente de novo, ou use um navegador de computador.",
-      "device_unsupported": "Este dispositivo ou navegador não oferece o que este app precisa. Experimente um navegador de computador recente.",
+      "device_unsupported": "Este dispositivo ou navegador não é compatível com este app. Use um navegador de computador recente.",
       "timeout": "O carregamento dos dados demorou demais. Tente de novo ou use um navegador de computador."
     }
   }

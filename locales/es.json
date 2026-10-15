@@ -4,7 +4,7 @@
       "unauthorized": "No tienes permiso para hacer eso. Revisa tus credenciales e inténtalo de nuevo.",
       "not_found": "El servidor no encontró lo que pediste.",
       "rate_limited": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
-      "server_error": "El servidor tuvo un error. Vuelve a intentarlo en un momento."
+      "server_error": "Hubo un error en el servidor. Vuelve a intentarlo en un momento."
     },
     "net": {
       "unreachable": "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
@@ -15,7 +15,7 @@
     },
     "config": {
       "missing": "Falta un ajuste obligatorio: {{field}}.",
-      "invalid": "Un ajuste no es válido: {{field}}."
+      "invalid": "Hay un ajuste no válido: {{field}}."
     },
     "internal": {
       "unknown": "Algo salió mal. Inténtalo de nuevo."
@@ -28,7 +28,7 @@
         "unauthorized": "Tu proveedor de IA rechazó la clave. Revísala en los ajustes.",
         "out_of_credits": "Tu cuenta del proveedor se quedó sin créditos. Agrega créditos e inténtalo de nuevo.",
         "rate_limited": "El proveedor de IA está limitando las solicitudes. Espera un momento e inténtalo de nuevo.",
-        "server_error": "El proveedor de IA tuvo un error en su servidor. Vuelve a intentarlo en un momento."
+        "server_error": "Hubo un error en el servidor del proveedor de IA. Vuelve a intentarlo en un momento."
       },
       "model": {
         "unavailable": "El modelo elegido no está disponible. Elige otro."
@@ -43,9 +43,9 @@
     },
     "bundle": {
       "download_failed": "No se pudo descargar el paquete de datos. Revisa tu conexión e inténtalo de nuevo.",
-      "integrity_failed": "Un archivo descargado no pasó la comprobación de integridad. Vuelve a intentarlo para descargarlo otra vez.",
+      "integrity_failed": "Un archivo descargado no pasó la comprobación de integridad. Vuelve a descargarlo.",
       "quota_exceeded": "No hay suficiente espacio libre para cargar los datos en este dispositivo. Libera espacio e inténtalo de nuevo, o usa un navegador de escritorio.",
-      "device_unsupported": "Este dispositivo o navegador no admite lo que necesita esta aplicación. Prueba con un navegador de escritorio reciente.",
+      "device_unsupported": "Este navegador o dispositivo no es compatible con esta aplicación. Prueba con un navegador de escritorio reciente.",
       "timeout": "La carga de los datos tardó demasiado. Inténtalo de nuevo o prueba en un navegador de escritorio."
     }
   }
