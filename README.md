@@ -177,6 +177,14 @@ has the details.
 
 ## How it works
 
+```mermaid
+flowchart LR
+    A["Raw failure<br/>(402, timeout, network down)"] --> B["classify()<br/>rules from YOUR catalog"]
+    B --> C["One stable code<br/>ai.provider.out_of_credits"]
+    C --> D["describe()<br/>a sentence, in your language"]
+    C --> E["toProblemDetails()<br/>RFC 9457 JSON"]
+```
+
 You build one list of codes when your app starts. Each code has a category, an
 English sentence, and optional rules for spotting it, such as "HTTP status 402"
 or "the error message mentions a timeout". `classify` looks at the failure you
@@ -196,6 +204,8 @@ every code yourself.
 | `aiPack`      | 9     | Your app calls an AI model provider: no key, bad key, out of credits, rate limited. |
 | `bundlePack`  | 5     | Your app downloads and checks a file on the device, such as a model or a data set. |
 | `starterPack` | 18    | Only for the older apps that already use it. New code should use `corePack`. |
+
+`starterPack` is kept frozen for earlier callers; new callers should pick `corePack`, `aiPack`, or `bundlePack`.
 
 Lists combine: every code from every list you pass is registered. If two lists
 define the same code, you get a `DuplicateCodeError` when the app starts, never a
