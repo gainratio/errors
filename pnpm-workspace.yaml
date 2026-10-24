@@ -9,3 +9,6 @@ minimumReleaseAge: 1440
 onlyBuiltDependencies:
   - "@biomejs/biome"
   - esbuild
+
+overrides:
+  vite: ">=8.3.3"
