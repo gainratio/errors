@@ -51,6 +51,16 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      # The org blocks Actions from creating PRs. When release-please cannot
+      # open its PR it still leaves the release branch behind; delete that
+      # orphan so the branches page never shows unmerged release work.
+      - name: Remove an orphan release branch on failure
+        if: steps.release.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: release-please--branches--main--components--errors
+        run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$RELEASE_BRANCH" || true
+
       - name: Publish the release (dispatch publish.yml at the new tag)
         if: ${{ steps.release.outputs.release_created == 'true' }}
         env:
