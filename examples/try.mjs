@@ -24,6 +24,11 @@ console.log(JSON.stringify(body));
 
 // An Error you can throw. Its .message is the code, so logs stay searchable.
 // The sentence comes from describe().
+// Starting from a raw failure, problemFor() classifies it and keeps the
+// observed status — including when the matched code registers several.
+const fromRaw = errors.problemFor({ status: 422 });
+console.log(JSON.stringify(fromRaw));
+
 const err = errors.create("config.missing", { field: "API_KEY" });
 console.log(err.message);
 console.log(errors.describe(err.code, err.params));

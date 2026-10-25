@@ -81,6 +81,7 @@ http.rate_limited            Too many requests. Wait a moment and try again.
 net.unreachable              Couldn't reach the server. Check your connection and try again.
 internal.unknown             Something went wrong. Try again.
 {"type":"ai.provider.out_of_credits","title":"Your provider account is out of credits. Add credits and try again.","status":402}
+{"type":"internal.unknown","title":"Something went wrong. Try again.","status":422}
 config.missing
 A required setting is missing: API_KEY.
 ```
