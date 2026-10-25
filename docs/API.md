@@ -255,7 +255,7 @@ Everything else is your catalog.
 
 `Registry` methods: `classify(raw)`, `describe(code, params?, t?)` (`t` is any
 `Translator`, including i18next's `t` as-is),
-`toProblemDetails(code, params?, opts?)`, `create(code, params?)`, plus
+`toProblemDetails(code, params?, opts?)`, `problemFor(raw, params?, opts?)`, `create(code, params?)`, plus
 `codes`, `has`, and `get`.
 
 `CatalogEntry` fields: `category` (required), `en`, `params`, `i18nKey`,

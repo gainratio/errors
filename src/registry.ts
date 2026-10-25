@@ -333,6 +333,21 @@ function createRegistry<C extends Catalog>(
     return problem;
   }
 
+  function problemFor(
+    raw: unknown,
+    params?: Params,
+    options?: ProblemOptions,
+  ): ProblemDetails {
+    const code = classify(raw);
+    const observed = httpStatusOf(raw);
+    const status = own(options, "status") ?? observed;
+    return toProblemDetails(
+      code,
+      params,
+      status === undefined ? options : { ...options, status },
+    );
+  }
+
   function create(code: ErrorCode, params?: Params): CanonicalError {
     const category = own(entryOf(code), "category") ?? "internal";
     return new CanonicalError(code, category, params);
@@ -345,6 +360,7 @@ function createRegistry<C extends Catalog>(
     classify,
     describe,
     toProblemDetails,
+    problemFor,
     create,
   };
   return registry as Registry<C>;

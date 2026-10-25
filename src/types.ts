@@ -183,6 +183,15 @@ export interface Registry<C extends Catalog = Catalog> {
   /** Turn a raw transport/LLM failure into a code (this registry's fallback). */
   classify(raw: unknown): ErrorCode;
 
+  /** Classify a raw failure AND serialize it, preserving the observed HTTP
+   * status when the matched code registers more than one (`httpStatus: [400,
+   * 422]`). `options.status` still wins. */
+  problemFor(
+    raw: unknown,
+    params?: Params,
+    options?: ProblemOptions,
+  ): ProblemDetails;
+
   /** Resolve the human text for a code via i18n, falling back to English. */
   describe<K extends keyof C & string>(
     code: K,
