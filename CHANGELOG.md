@@ -9,6 +9,13 @@ From 0.2.2 on, release-please writes each entry from the conventional-commit
 messages merged since the last release (`feat:` under Added, `fix:` under
 Fixed). Entries up to 0.2.1 were written by hand.
 
+## [0.4.0](https://github.com/gainratio/errors/compare/v0.3.1...v0.4.0) (2026-10-25)
+
+
+### Added
+
+* add problemFor(raw) to preserve the observed HTTP status ([#50](https://github.com/gainratio/errors/issues/50)) ([31ac34d](https://github.com/gainratio/errors/commit/31ac34dbbbd04b77d4d9954425a1472665651a0a))
+
 ## [0.3.1](https://github.com/gainratio/errors/compare/v0.3.0...v0.3.1) (2026-10-15)
 
 
