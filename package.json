@@ -1,6 +1,6 @@
 {
   "name": "@gainratio/errors",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "type": "module",
   "description": "Give every error in your JavaScript or TypeScript app one fixed code and one clear message, the same on every screen.",
   "keywords": [
