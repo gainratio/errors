@@ -20,7 +20,7 @@ import {
 } from "../src/index.js";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const LOCALES = ["es", "pt"] as const;
+const LOCALES = ["es", "pt", "hi"] as const;
 
 interface Resource {
   readonly [key: string]: string | Resource;
@@ -117,13 +117,15 @@ describe("the shipped translations in a real i18next", () => {
       resources: {
         es: { translation: load("es") },
         pt: { translation: load("pt") },
+        hi: { translation: load("hi") },
       },
     });
   });
 
-  it("describes every registered code in Spanish and Portuguese", () => {
+  it("describes every registered code in Spanish, Portuguese, and Hindi", () => {
     const es = flatten(load("es"));
     const pt = flatten(load("pt"));
+    const hi = flatten(load("hi"));
     for (const code of errors.codes) {
       const params = { field: "API_KEY" };
       const expectEs = es
@@ -132,8 +134,12 @@ describe("the shipped translations in a real i18next", () => {
       const expectPt = pt
         .get(`errors.${code}`)
         ?.replace("{{field}}", "API_KEY");
+      const expectHi = hi
+        .get(`errors.${code}`)
+        ?.replace("{{field}}", "API_KEY");
       expect(errors.describe(code, params, tFor("es")), code).toBe(expectEs);
       expect(errors.describe(code, params, tFor("pt")), code).toBe(expectPt);
+      expect(errors.describe(code, params, tFor("hi")), code).toBe(expectHi);
     }
   });
 
