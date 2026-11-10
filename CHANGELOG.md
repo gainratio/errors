@@ -9,6 +9,13 @@ From 0.2.2 on, release-please writes each entry from the conventional-commit
 messages merged since the last release (`feat:` under Added, `fix:` under
 Fixed). Entries up to 0.2.1 were written by hand.
 
+## [0.5.0](https://github.com/gainratio/errors/compare/v0.4.0...v0.5.0) (2026-11-10)
+
+
+### Added
+
+* **locales:** add Hindi locale (locales/hi.json) and enrich npm keywords ([#55](https://github.com/gainratio/errors/issues/55)) ([9b830e6](https://github.com/gainratio/errors/commit/9b830e607c5897afdf69689ee4e525726b99f0dd))
+
 ## [0.4.0](https://github.com/gainratio/errors/compare/v0.3.1...v0.4.0) (2026-10-25)
 
 
