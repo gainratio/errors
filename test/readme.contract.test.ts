@@ -213,6 +213,6 @@ describe("README says up front that messages come in the user's language", () =>
   it("mentions languages and the shipped translations before 'Try it'", () => {
     const intro = README.slice(0, at("## Try it\n"));
     expect(intro).toMatch(/user's\s+language/);
-    expect(intro).toMatch(/Spanish\s+and\s+Portuguese/);
+    expect(intro).toMatch(/Spanish,\s+Portuguese,\s+and\s+Hindi/);
   });
 });

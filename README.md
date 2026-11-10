@@ -19,7 +19,7 @@ whatever failed (an HTTP status, a thrown error, a network drop) and it gives
 back one code such as `ai.provider.out_of_credits`, one sentence a person can
 read, and the same error as a standard JSON body your API can send.
 The code is the same in every language. The sentence comes in the user's
-language through your own i18next, and Spanish and Portuguese translations of
+language through your own i18next, and Spanish, Portuguese, and Hindi translations of
 every built-in code ship with the package.
 It does not log, retry, or report errors. Your app still decides what to do with them.
 
@@ -108,7 +108,7 @@ translations have that key, the user sees it. If not, they see the English
 sentence from your list of codes, never a raw key. The code itself never
 changes, so your logs and API stay the same in every language.
 
-The package ships Spanish (`es`) and Brazilian Portuguese (`pt`) for all 24
+The package ships Spanish (`es`), Brazilian Portuguese (`pt`), and Hindi (`hi`) for all 24
 built-in codes, as plain i18next JSON files. Load them into the i18next you
 already use:
 
