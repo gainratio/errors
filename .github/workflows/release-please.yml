@@ -55,11 +55,17 @@ jobs:
       # open its PR it still leaves the release branch behind; delete that
       # orphan so the branches page never shows unmerged release work.
       - name: Remove an orphan release branch on failure
-        if: steps.release.outcome == 'failure'
+        if: always() && steps.release.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_BRANCH: release-please--branches--main--components--errors
-        run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$RELEASE_BRANCH" || true
+        run: |
+          open_prs="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$RELEASE_BRANCH" --state open --json number --jq 'length')"
+          if [ "$open_prs" != "0" ]; then
+            echo "Keeping $RELEASE_BRANCH because an open release PR exists."
+            exit 0
+          fi
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$RELEASE_BRANCH" || true
 
       - name: Publish the release (dispatch publish.yml at the new tag)
         if: ${{ steps.release.outputs.release_created == 'true' }}
